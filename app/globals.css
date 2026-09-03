@@ -222,4 +222,32 @@ body {
   .no-print {
     display: none !important;
   }
+
+  /*
+   * The on-screen receipt when there is no ESC/POS printer to send bytes to —
+   * or a "print" the cashier wants a real page or a PDF of. This is the
+   * browser's own print pipeline (File > Print, or Save as PDF from that same
+   * dialog), a completely different path from the NetworkPrinter/UsbPrinter
+   * adapters, which speak raw ESC/POS to thermal hardware over a socket or a
+   * USB port and have nothing to do with the OS print system at all. A
+   * printer that answers an OS test page fine can still be "not connected" to
+   * the till, because the till was never talking to it that way.
+   */
+  .receipt-print-area {
+    position: static !important;
+    inset: auto !important;
+    background: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  .receipt-print-area .receipt-print-sheet {
+    max-height: none !important;
+    box-shadow: none !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+  .receipt-print-area .receipt-print-scroll {
+    overflow: visible !important;
+    max-height: none !important;
+  }
 }

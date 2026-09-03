@@ -100,7 +100,9 @@ export function SaleComplete({
 
   return (
     <main className="flex h-screen flex-col items-center justify-center bg-char-950 p-6">
-      <div className="w-full max-w-md">
+      {/* Hidden while printing — ReceiptSheet below is a sibling, not a
+          child, so hiding this leaves only the receipt itself on the page. */}
+      <div className="no-print w-full max-w-md">
         {/*
           No tick in a circle. The one thing that matters on this screen is the
           figure the cashier is about to count into somebody's hand, so that is
@@ -209,6 +211,24 @@ function PrintStatus({ state }: { state: PrintState }) {
 /**
  * The receipt exactly as the printer renders it, for a customer who wants to
  * see the weights and the arithmetic when no paper is coming out.
+ *
+ * Two completely different "print" buttons live here, because they go to two
+ * completely different places:
+ *
+ *   Print again    resends the ESC/POS bytes to the configured thermal
+ *                  printer adapter — NetworkPrinter or UsbPrinter, a raw
+ *                  socket or USB port, nothing to do with the OS.
+ *   Print / PDF    hands this same content to the BROWSER's own print
+ *                  pipeline (`window.print()`) — the one behind File > Print,
+ *                  which is also where "Save as PDF" lives on every desktop
+ *                  OS. A shop with no thermal printer, or one that answers an
+ *                  OS test page but not the till's socket, still has a paper
+ *                  or PDF receipt through this path with no server-side PDF
+ *                  library and no adapter at all.
+ *
+ * `.receipt-print-area` / `-sheet` / `-scroll` are hooked to the `@media
+ * print` rules in globals.css so what prints is the receipt at full length,
+ * not a screen-height scroll box with the rest of the page's chrome around it.
  */
 function ReceiptSheet({
   text,
@@ -220,12 +240,12 @@ function ReceiptSheet({
   onReprint: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="flex max-h-[90vh] w-full max-w-sm flex-col sheet bg-white shadow-2xl">
-        <div className="till-scroll min-h-0 flex-1 overflow-y-auto p-4">
+    <div className="receipt-print-area fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+      <div className="receipt-print-sheet flex max-h-[90vh] w-full max-w-sm flex-col sheet bg-white shadow-2xl">
+        <div className="receipt-print-scroll till-scroll min-h-0 flex-1 overflow-y-auto p-4">
           <pre className="receipt-paper text-char-900">{text}</pre>
         </div>
-        <div className="grid grid-cols-2 gap-2 border-t border-char-200 p-3">
+        <div className="no-print grid grid-cols-2 gap-2 border-t border-char-200 p-3">
           <button
             type="button"
             onClick={onReprint}
@@ -235,8 +255,15 @@ function ReceiptSheet({
           </button>
           <button
             type="button"
+            onClick={() => window.print()}
+            className="touch-target key bg-char-100 font-semibold text-char-700 hover:bg-char-200"
+          >
+            Print / Save as PDF
+          </button>
+          <button
+            type="button"
             onClick={onClose}
-            className="touch-target key bg-brass-500 font-semibold text-char-950 hover:bg-brass-400"
+            className="touch-target key col-span-2 bg-brass-500 font-semibold text-char-950 hover:bg-brass-400"
           >
             Done
           </button>
