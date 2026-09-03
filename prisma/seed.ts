@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "../lib/generated/prisma/client";
 import { hashPin } from "../lib/auth";
 
@@ -13,8 +13,9 @@ import { hashPin } from "../lib/auth";
  * so: the seed is what a fresh till is checked against.
  */
 
-const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL ?? "file:./newmark.db" });
-const db = new PrismaClient({ adapter });
+const url = process.env.DATABASE_URL;
+if (!url) throw new Error("DATABASE_URL is not set — point it at the database to seed.");
+const db = new PrismaClient({ adapter: new PrismaNeon({ connectionString: url }) });
 
 interface LiveProduct {
   name: string;

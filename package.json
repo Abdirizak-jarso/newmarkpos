@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -16,14 +16,17 @@
     "db:reset": "prisma db push --force-reset && npm run seed",
     "db:studio": "prisma studio",
     "test:integration": "npm run test:setup && vitest run --config vitest.integration.config.ts",
-    "test:setup": "rm -f newmark-test.db newmark-test.db-journal && DATABASE_URL=\"file:./newmark-test.db\" prisma db push && DATABASE_URL=\"file:./newmark-test.db\" PIN_PEPPER=\"test-pepper-not-used-anywhere-real-0123456789abcdef\" tsx prisma/seed.ts",
-    "test:all": "npm run test && npm run test:integration"
+    "test:setup": "test -n \"$TEST_DATABASE_URL\" || (echo 'Set TEST_DATABASE_URL to a scratch Postgres database (a Neon branch works). It is wiped on every run.' && exit 1) && DATABASE_URL=\"$TEST_DATABASE_URL\" prisma migrate reset --force --skip-seed && DATABASE_URL=\"$TEST_DATABASE_URL\" PIN_PEPPER=\"test-pepper-not-used-anywhere-real-0123456789abcdef\" tsx prisma/seed.ts",
+    "test:all": "npm run test && npm run test:integration",
+    "build:nodb": "prisma generate && next build",
+    "db:deploy": "prisma migrate deploy"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.10.0",
+    "@neondatabase/serverless": "^1.1.0",
+    "@prisma/adapter-neon": "^7.10.0",
     "@prisma/client": "7.10.0",
     "dotenv": "^17.4.2",
     "next": "16.3.4",

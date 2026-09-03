@@ -3,10 +3,12 @@ import path from "node:path";
 import { defineConfig } from "prisma/config";
 
 /**
- * Prisma 7 keeps the connection out of the schema. The till's database is a
- * local SQLite file so a terminal can trade with no network at all; point
- * DATABASE_URL at a central server's file (or swap the adapter) when the shop
- * moves to a shared back office.
+ * Prisma 7 keeps the connection out of the schema.
+ *
+ * DATABASE_URL is a Neon Postgres connection string. Migrations want the
+ * DIRECT one (no `-pooler` in the host) because a pooler cannot hold the
+ * advisory lock a migration takes; the running app wants the pooled one. Set
+ * DIRECT_DATABASE_URL when the two differ, which on Neon they do.
  */
 export default defineConfig({
   schema: path.join("prisma", "schema.prisma"),
@@ -15,6 +17,6 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env.DATABASE_URL ?? "file:./newmark.db",
+    url: process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL ?? "",
   },
 });

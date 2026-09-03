@@ -4,10 +4,20 @@
 // There are no Float/Decimal columns for money or weight anywhere in this
 // schema, and there should never be one.
 //
-// The datasource is SQLite: each till keeps its own local database file so the
-// shop keeps trading with no network, and pushes to the central server through
-// the SyncQueue. To run a central Postgres server, change the provider and
-// point DATABASE_URL at it — the model definitions are portable.
+// The datasource is Postgres (Neon), shared by every terminal and the back
+// office. This is the hosted deployment of what began as a local-SQLite till:
+// the models were written to be portable and this is that port.
+//
+// What it costs: a terminal can no longer trade with the network down, because
+// the database is no longer on the terminal. The counter this runs at has
+// internet, so that trade is made deliberately — but the SyncQueue and the
+// client-side outbox in lib/offline.ts still exist and still matter, because
+// "the shop's internet is up" and "this request will succeed" are not the same
+// claim. A dropped connection mid-service must still not lose a sale.
+//
+// The SQLite migration history this schema grew from is kept in
+// prisma/migrations-sqlite/ — it cannot run on Postgres (PRAGMA, table
+// rebuilds), but it is the record of how these tables got their shape.
 
 generator client {
   provider = "prisma-client"
@@ -16,7 +26,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // ---------------------------------------------------------------------------

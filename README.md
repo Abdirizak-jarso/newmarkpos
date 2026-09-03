@@ -4,14 +4,19 @@ Point of sale for **Newmark Butchery** — Bishan Plaza, Westlands, Nairobi.
 
 A weight-first till for a halal butchery counter: sells by the kilogram, cuts to a shilling
 budget, breaks carcasses down into cuts with recorded loss, prints on 80mm thermal, and
-keeps trading when the network, the printer or the scale is unavailable.
+keeps trading when the printer or the scale is unavailable. Runs on Vercel against a Neon
+Postgres database — see [Deploying](#deploying-to-vercel--neon) below.
 
 ## Getting started
 
+You need a Postgres database to develop against — a free [Neon](https://neon.tech) project
+takes a couple of minutes and gives you both connection strings below.
+
 ```bash
 npm install
-cp .env.example .env          # then set SESSION_SECRET and TERMINAL_ID
-npx prisma migrate dev        # create the database
+cp .env.example .env          # then set DATABASE_URL, DIRECT_DATABASE_URL, SESSION_SECRET,
+                               # PIN_PEPPER and TERMINAL_ID
+npx prisma migrate dev        # apply migrations to your database
 npm run seed                  # load the catalogue, staff and settings
 npm run dev
 ```
@@ -99,11 +104,47 @@ MPESA_ADAPTER=manual          # or daraja
 `TERMINAL_ID` prefixes this till's receipt numbers (`T1-000412`), so two offline terminals
 can never mint the same one.
 
+## Deploying to Vercel + Neon
+
+1. **Create a Neon project.** Copy both connection strings it gives you:
+   - the **pooled** one (host contains `-pooler`) → `DATABASE_URL`
+   - the **direct** one (no `-pooler`) → `DIRECT_DATABASE_URL`
+
+   Neon pools connections for you; without the pooled string, Vercel's many short-lived
+   function instances will exhaust Postgres' connection limit the first time the till is
+   actually busy. The direct string exists only because a migration takes a lock a pooler
+   can't hold — `prisma migrate deploy` needs it, the running app never does.
+
+2. **Push this repo to GitHub, then import it in Vercel** (New Project → your repo).
+
+3. **Set environment variables** in the Vercel project (Settings → Environment Variables):
+   `DATABASE_URL`, `DIRECT_DATABASE_URL`, `SESSION_SECRET`, `PIN_PEPPER`, `TERMINAL_ID`, and
+   whichever adapter variables apply (`.env.example` has the full list — printer, scale,
+   M-Pesa, eTIMS all default to a working no-hardware setting if you leave them unset).
+
+4. **Deploy.** `npm run build` runs `prisma migrate deploy` before `next build`, so the
+   first deploy creates every table and each later one applies only what changed.
+
+5. **Seed it once**, from your machine, pointed at the new database:
+   ```bash
+   DATABASE_URL="<the pooled string from Vercel>" npm run seed
+   ```
+   This loads the catalogue and the four demo staff PINs in the table above. **Change those
+   PINs before the till goes on a real counter** — Admin → Staff.
+
+Every Vercel preview deploy (a PR, a branch) runs against the *same* database unless you
+give it its own — there is no branch-per-database wiring here. For a single-till shop that
+is usually fine; for a team shipping catalogue changes through PRs, point preview
+deployments at a [Neon branch](https://neon.tech/docs/introduction/branching) instead of the
+production database.
+
 ## Tests
 
 ```bash
-npm test                 # 98 unit tests — pricing, weight, money, breakdown, receipts, auth
-npm run test:integration # 45 integration tests against a seeded throwaway database
+npm test                 # unit tests — pricing, weight, money, breakdown, receipts, auth
+npm run test:integration # integration tests against TEST_DATABASE_URL (a scratch database,
+                          # wiped on every run — never point this at the shop's database;
+                          # a Neon branch is the easy way to get a throwaway one)
 npm run test:all
 ```
 

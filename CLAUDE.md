@@ -11,7 +11,8 @@ administration. A separate e-commerce site already exists at newmarkprimemeat.co
 
 There are two distinct surfaces in one codebase:
 
-- **Till (cashier)** — touch-optimised, speed-first, must work offline. `app/till`
+- **Till (cashier)** — touch-optimised, speed-first, resilient to a dropped request (not to
+  a counter with no internet at all — see Offline, below). `app/till`
 - **Admin (back office)** — catalogue, pricing, stock, staff, reports, audit. `app/admin`
 
 ## Domain rules — read these before writing any business logic
@@ -93,13 +94,22 @@ work around them.
 
 ### Offline
 
-- The till is local-first with a sync queue. It sells with no network.
-- Sales are priced client-side by the same pure `priceSale` the server uses, banked to an
-  IndexedDB outbox (`lib/offline.ts`) when the network is down, and replayed to
-  `POST /api/sales` when it returns.
-- Every sale carries a client-generated **idempotency key**, which becomes the sale's
-  primary key. A replayed sync must never bank the same sale twice.
-- Receipt numbers carry a per-terminal prefix so offline terminals never collide.
+- **This deployment runs against a remote Postgres database (Neon), on a counter with
+  internet.** The till is no longer local-first in the original sense — there is no
+  per-terminal SQLite file, and a terminal with no network at all cannot load the till or
+  sign in. What survives is resilience to a *dropped request*, which is a different and
+  smaller guarantee than "sells with no network":
+  - Sales are priced client-side by the same pure `priceSale` the server uses, banked to an
+    IndexedDB outbox (`lib/offline.ts`) when a checkout request fails, and replayed to
+    `POST /api/sales` when it succeeds.
+  - Every sale carries a client-generated **idempotency key**, which becomes the sale's
+    primary key. A replayed sync must never bank the same sale twice.
+  - Receipt numbers carry a per-terminal prefix so terminals can never collide, offline
+    outbox or not.
+- The original single-SQLite-file-per-terminal design (true offline trading, `SyncQueue`
+  draining to a central server) is preserved in git history and in
+  `prisma/migrations-sqlite/` for whichever shop needs it later — it is not what is running
+  now. See Stack, below.
 
 ### Authorisation
 
@@ -138,28 +148,40 @@ work around them.
 
 ## Stack
 
-- Next.js 16 (App Router) + React 19 + TypeScript (strict) + Tailwind v4
-- Prisma 7 with the `better-sqlite3` driver adapter. The connection lives in
-  `prisma.config.ts`, not the schema (Prisma 7 moved it).
-- **SQLite**, one database file per terminal. This is deliberate: the till must trade with
-  no network, so its data is local and drains to a central server through `SyncQueue`. To
-  run a central Postgres back office, change the `datasource` provider and point
-  `DATABASE_URL` at it — the models are portable.
-- Vitest for unit and integration tests.
+- Next.js 16 (App Router) + React 19 + TypeScript (strict) + Tailwind v4, deployed to Vercel.
+- Prisma 7 with the `@prisma/adapter-neon` driver adapter, over **Postgres (Neon)**. The
+  connection lives in `prisma.config.ts` and `lib/db.ts`, not the schema (Prisma 7 moved it).
+- `DATABASE_URL` must be Neon's **pooled** connection string (`-pooler` in the host) — a
+  Vercel function is a short-lived process spun up by the hundred, and without the pooler
+  that exhausts Postgres' connection limit under real load. `DIRECT_DATABASE_URL` (no
+  `-pooler`) is for migrations only: a pooler cannot hold the advisory lock
+  `prisma migrate deploy` takes. `npm run build` runs `migrate deploy` before `next build`,
+  so a deploy that adds a column never serves a page against a schema that lacks it.
+- `lib/db.ts` builds the Prisma client lazily, on first use, not at import — `next build`
+  imports every server module to collect routes, and a build machine legitimately has no
+  database. A missing `DATABASE_URL` still throws loudly, the first time anything queries.
+- This was originally a one-SQLite-file-per-terminal design (see Offline, above, and
+  `prisma/migrations-sqlite/` for that history). The models were written to be portable and
+  this is that port, done because the counter has internet — not a change forced by Vercel.
+- Vitest for unit and integration tests. Integration tests need their own scratch Postgres
+  database in `TEST_DATABASE_URL` (a Neon branch is the easy way to get one) — it is wiped
+  on every run, so it must never be the shop's database.
 
 ## Commands
 
 ```bash
-npm run dev              # start dev server
-npm run build            # production build (runs prisma generate first)
+npm run dev              # start dev server (needs DATABASE_URL — a real Postgres/Neon)
+npm run build            # prisma generate && prisma migrate deploy && next build
+npm run build:nodb       # prisma generate && next build — compiles with no DATABASE_URL
 npm run typecheck        # tsc --noEmit
 npm run lint             # lint
 
 npm test                 # unit tests — pure domain logic, no database
-npm run test:integration # integration tests against a seeded throwaway database
+npm run test:integration # integration tests, against TEST_DATABASE_URL (scratch, wiped)
 npm run test:all         # both
 
-npx prisma migrate dev   # create and apply a migration
+npx prisma migrate dev   # create and apply a migration (needs DIRECT_DATABASE_URL)
+npm run db:deploy        # apply pending migrations without prompting (what build runs)
 npm run db:studio        # browse the data
 npm run seed             # seed catalogue, staff and settings
 ```
