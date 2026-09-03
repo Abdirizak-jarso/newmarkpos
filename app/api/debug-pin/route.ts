@@ -1,6 +1,10 @@
-import { pinLookup } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  return NextResponse.json({ lookup: pinLookup("907143") });
+  return NextResponse.json({
+    hasPinPepper: !!process.env.PIN_PEPPER,
+    pinPepperLength: process.env.PIN_PEPPER?.length ?? 0,
+    hasSessionSecret: !!process.env.SESSION_SECRET,
+    sessionSecretLength: process.env.SESSION_SECRET?.length ?? 0,
+  });
 }
