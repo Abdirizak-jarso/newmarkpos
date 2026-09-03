@@ -106,21 +106,35 @@ can never mint the same one.
 
 ## Deploying to Vercel + Neon
 
-1. **Create a Neon project.** Copy both connection strings it gives you:
-   - the **pooled** one (host contains `-pooler`) → `DATABASE_URL`
-   - the **direct** one (no `-pooler`) → `DIRECT_DATABASE_URL`
+1. **Push this repo to GitHub, then import it in Vercel** (New Project → your repo).
 
-   Neon pools connections for you; without the pooled string, Vercel's many short-lived
-   function instances will exhaust Postgres' connection limit the first time the till is
-   actually busy. The direct string exists only because a migration takes a lock a pooler
-   can't hold — `prisma migrate deploy` needs it, the running app never does.
+2. **Connect Neon.** Two ways to do this — pick one:
 
-2. **Push this repo to GitHub, then import it in Vercel** (New Project → your repo).
+   - **Vercel's Storage tab → Neon (native integration).** Leave the **custom prefix
+     blank**. With no prefix it creates `DATABASE_URL` (pooled) and
+     `DATABASE_URL_UNPOOLED` (direct) for you, along with a handful of `PG*`/`POSTGRES_*`
+     variables the app doesn't use — `prisma.config.ts` already reads
+     `DATABASE_URL_UNPOOLED` as the direct string, so nothing else to set. **If Vercel
+     warns that `DATABASE_URL` already exists**, that's because you (or an earlier
+     integration attempt) added one by hand — delete that manual `DATABASE_URL` (and any
+     `DIRECT_DATABASE_URL`) in Settings → Environment Variables first, then let the
+     integration create its own. A custom prefix is only worth setting if you're
+     connecting more than one Neon project to this app and need to tell their variables
+     apart.
 
-3. **Set environment variables** in the Vercel project (Settings → Environment Variables):
-   `DATABASE_URL`, `DIRECT_DATABASE_URL`, `SESSION_SECRET`, `PIN_PEPPER`, `TERMINAL_ID`, and
-   whichever adapter variables apply (`.env.example` has the full list — printer, scale,
-   M-Pesa, eTIMS all default to a working no-hardware setting if you leave them unset).
+   - **Create the Neon project yourself** (neon.tech) and set the variables by hand in
+     Settings → Environment Variables: the **pooled** connection string (host contains
+     `-pooler`) → `DATABASE_URL`, the **direct** one (no `-pooler`) → `DIRECT_DATABASE_URL`.
+
+   Either way: the pooled string is what the running app always uses — Vercel's many
+   short-lived function instances would exhaust Postgres' connection limit under real load
+   without it. The direct string exists only because a migration takes a lock a pooler
+   can't hold; `prisma migrate deploy` needs it, the running app never does.
+
+3. **Set the rest of the environment variables**: `SESSION_SECRET`, `PIN_PEPPER`,
+   `TERMINAL_ID`, and whichever adapter variables apply (`.env.example` has the full list —
+   printer, scale, M-Pesa, eTIMS all default to a working no-hardware setting if you leave
+   them unset).
 
 4. **Deploy.** `npm run build` runs `prisma migrate deploy` before `next build`, so the
    first deploy creates every table and each later one applies only what changed.
