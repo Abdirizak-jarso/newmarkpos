@@ -1,0 +1,509 @@
+// Newmark POS — data model
+//
+// Money is stored as Int cents. Weight is stored as Int grams (3 dp).
+// There are no Float/Decimal columns for money or weight anywhere in this
+// schema, and there should never be one.
+//
+// The datasource is SQLite: each till keeps its own local database file so the
+// shop keeps trading with no network, and pushes to the central server through
+// the SyncQueue. To run a central Postgres server, change the provider and
+// point DATABASE_URL at it — the model definitions are portable.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+  runtime  = "nodejs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------------------------------------------------------------------------
+// Catalogue
+// ---------------------------------------------------------------------------
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  sortOrder Int       @default(0)
+  colour    String? // Till button colour, so cashiers find beef by shape not text.
+  active    Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  sku         String  @unique
+  name        String
+  slug        String  @unique
+  description String?
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  /// PER_KG | PER_PIECE | FIXED_PACK — see lib/pricing.ts
+  pricingMode String @default("PER_KG")
+
+  /// Cents per kg (PER_KG), per piece (PER_PIECE) or per pack (FIXED_PACK).
+  price Int
+
+  /// Was-price for a promotion, in cents. Null when not on offer.
+  comparePrice Int?
+
+  /// Grams one piece or pack removes from stock. Required for the non-kg modes.
+  unitWeightGrams Int?
+
+  /// EXEMPT | ZERO_RATED | STANDARD. Per product, never a catalogue-wide rate.
+  taxClass String @default("EXEMPT")
+
+  /// Stock on hand, in grams.
+  stockGrams Int @default(0)
+
+  /// Warn the counter below this level, in grams. Null disables the warning.
+  reorderLevelGrams Int?
+
+  /// Cost per kg in cents, kept up to date by intake and carcass breakdown.
+  costPerKg Int @default(0)
+
+  /// Comes out of a carcass breakdown rather than a purchase order.
+  isByProduct Boolean @default(false)
+
+  /// Can be broken down into other products (a whole carcass, a whole goat).
+  isBreakdownSource Boolean @default(false)
+
+  active     Boolean @default(true)
+  showOnTill Boolean @default(true)
+  featured   Boolean @default(false)
+  sortOrder  Int     @default(0)
+  imageUrl   String?
+
+  saleLines         SaleLine[]
+  stockMovements    StockMovement[]
+  breakdownInputs   CarcassBreakdown[] @relation("BreakdownSource")
+  breakdownOutputs  BreakdownOutput[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([active, showOnTill])
+}
+
+// ---------------------------------------------------------------------------
+// Staff and authorisation
+// ---------------------------------------------------------------------------
+
+model User {
+  id   String @id @default(cuid())
+  name String
+
+  /// Employee number. Shown on staff lists and rotas; never typed to sign in.
+  staffCode String @unique
+
+  /// scrypt hash of the PIN. The PIN itself is never stored or logged.
+  pinHash String
+  pinSalt String
+
+  /// Keyed HMAC of the PIN, so a PIN can find its owner without scrypt-testing
+  /// every member of staff — and so the database can enforce that no two people
+  /// share one. Useless without PIN_PEPPER, which never goes in the database.
+  /// Nullable only so a row can exist mid-migration; always set in practice.
+  pinLookup String? @unique
+
+  /// CASHIER | ADMIN — see lib/permissions.ts
+  role String @default("CASHIER")
+
+  active   Boolean   @default(true)
+  lastSeen DateTime?
+
+  sales          Sale[]
+  sessions       Session[]
+  stockMovements StockMovement[]
+  auditEvents    AuditEvent[]        @relation("AuditActor")
+  approvals      AuditEvent[]        @relation("AuditApprover")
+  breakdowns     CarcassBreakdown[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Sales
+// ---------------------------------------------------------------------------
+
+model Sale {
+  id String @id @default(cuid())
+
+  /// Per-terminal prefixed number, e.g. T1-000412. Unique across terminals so
+  /// two offline tills can never mint the same receipt number.
+  receiptNumber String @unique
+  terminalId    String
+
+  /// OPEN | PARKED | COMPLETED | VOIDED | REFUNDED
+  status String @default("OPEN")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // All figures in cents, computed by lib/pricing.ts.
+  gross              Int @default(0)
+  discount           Int @default(0)
+  subtotal           Int @default(0)
+  roundingAdjustment Int @default(0)
+  total              Int @default(0)
+  tax                Int @default(0)
+
+  /// JSON snapshot of the tax buckets, for the invoice and VAT return.
+  taxBreakdown String?
+
+  totalWeightGrams Int @default(0)
+
+  /// Whole-sale discount, kept for audit alongside the prorated line shares.
+  saleDiscountKind   String?
+  saleDiscountValue  Int?
+  saleDiscountReason String?
+
+  customerName  String?
+  customerPhone String?
+  customerPin   String? // KRA PIN, when the customer wants a tax invoice.
+
+  /// Set when this sale reverses another. Refunds never edit the original.
+  reversesSaleId String?
+  voidReason     String?
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  lines      SaleLine[]
+  payments   Payment[]
+  invoice    TaxInvoice?
+  printJobs  PrintJob[]
+
+  @@index([status, completedAt])
+  @@index([terminalId, createdAt])
+}
+
+model SaleLine {
+  id     String @id @default(cuid())
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  /// Copied at the time of sale. The catalogue may change; a receipt may not.
+  sku         String
+  name        String
+  pricingMode String
+  /// The rate actually charged, in cents per kg / piece / pack. When the
+  /// cashier typed a rate at the counter this is that rate, not the board's —
+  /// so a receipt, a refund and a margin report all read what was paid.
+  unitPrice   Int
+
+  /// The catalogue rate on the day, kept alongside whatever was charged. This
+  /// is what makes a counter-typed price auditable rather than a black hole:
+  /// the gap between the two is visible on every line, for ever.
+  catalogueUnitPrice Int?
+  /// True when the rate came off the entry pad rather than the catalogue.
+  priceOverridden    Boolean @default(false)
+
+  weightGrams Int @default(0)
+  quantity    Int @default(1)
+  stockGrams  Int @default(0)
+
+  gross    Int
+  discount Int @default(0)
+  net      Int
+
+  /// What this meat cost the shop, in cents, stamped at the moment of sale.
+  /// Deliberately copied rather than looked up: reading today's cost back over
+  /// last month's sales reprices history every time a delivery arrives, and a
+  /// margin that moves after the fact is not a margin.
+  cost Int @default(0)
+  /// The product's average cost per kg on the day, kept so a line can be
+  /// re-checked without reconstructing the whole stock ledger.
+  costPerKg Int @default(0)
+
+  taxClass       String
+  taxRatePercent Int   @default(0)
+  tax            Int   @default(0)
+
+  /// Set when the cashier typed a shilling target and cut to it.
+  requestedAmount Int?
+
+  discountReason String?
+  notes          String?
+  sortOrder      Int     @default(0)
+
+  @@index([saleId])
+  @@index([productId])
+}
+
+model Payment {
+  id     String @id @default(cuid())
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  /// CASH | MPESA | CARD | ACCOUNT | VOUCHER
+  method    String
+  amount    Int
+
+  /// M-Pesa confirmation code, card auth code. Required for M-Pesa: it is the
+  /// only handle the shop has when reconciling the till against the statement.
+  reference String?
+
+  /// When the customer's M-Pesa payment actually went through, as shown on
+  /// their confirmation message. Deliberately separate from createdAt — the
+  /// cashier may key it in a minute or two later, and the reconciliation has
+  /// to match Safaricom's clock, not the till's.
+  transactedAt DateTime?
+
+  /// PENDING | CONFIRMED | FAILED — an M-Pesa STK push is not instant.
+  status String @default("CONFIRMED")
+
+  createdAt DateTime @default(now())
+
+  @@index([saleId])
+}
+
+// ---------------------------------------------------------------------------
+// Stock
+// ---------------------------------------------------------------------------
+
+model StockMovement {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  /// Signed grams: negative takes stock out, positive puts it in.
+  deltaGrams Int
+
+  /// Stock level after this movement, for reconstructing history.
+  balanceGrams Int
+
+  /// INTAKE | SALE | REFUND | BREAKDOWN_IN | BREAKDOWN_OUT | WASTE | ADJUSTMENT
+  /// | TRANSFER | STAFF_MEAT | COUNT
+  /// Nothing moves stock without a reason code.
+  reason String
+
+  /// Free-text detail: supplier, spoilage cause, count sheet reference.
+  note String?
+
+  /// Cost per kg of the stock moving, in cents. Set on intake and breakdown.
+  costPerKg Int?
+
+  /// Nothing changes stock anonymously.
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id])
+
+  saleId      String?
+  breakdownId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@index([reason, createdAt])
+}
+
+model CarcassBreakdown {
+  id String @id @default(cuid())
+
+  sourceProductId String
+  sourceProduct   Product @relation("BreakdownSource", fields: [sourceProductId], references: [id])
+
+  inputWeightGrams Int
+  /// What the carcass cost, in cents. Spread across the outputs by weight.
+  inputCost        Int @default(0)
+
+  outputWeightGrams Int
+  /// inputWeight - outputWeight. Expected, recorded, never discarded.
+  lossGrams         Int
+  /// Loss as a percentage, x10 so 12.4% is stored as 124 and stays an integer.
+  lossPercentTenths Int
+
+  supplier String?
+  notes    String?
+
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id])
+
+  outputs BreakdownOutput[]
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model BreakdownOutput {
+  id          String           @id @default(cuid())
+  breakdownId String
+  breakdown   CarcassBreakdown @relation(fields: [breakdownId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  weightGrams Int
+  /// Yield x10 so 27.5% is stored as 275.
+  yieldTenths Int
+  /// Share of the carcass cost carried by this output, in cents.
+  costAllocated Int @default(0)
+  costPerKg     Int @default(0)
+
+  isByProduct Boolean @default(false)
+
+  @@index([breakdownId])
+}
+
+// ---------------------------------------------------------------------------
+// Tax authority (KRA eTIMS)
+// ---------------------------------------------------------------------------
+
+model TaxInvoice {
+  id     String @id @default(cuid())
+  saleId String @unique
+  sale   Sale   @relation(fields: [saleId], references: [id])
+
+  /// PENDING | SUBMITTED | ACCEPTED | REJECTED | NOT_APPLICABLE
+  /// PENDING is normal and never blocks the sale.
+  status String @default("PENDING")
+
+  /// Control unit invoice number returned by eTIMS.
+  invoiceNumber String?
+  /// Control unit receipt signature, printed on the receipt as a QR code.
+  signature     String?
+  qrUrl         String?
+
+  submittedAt DateTime?
+  attempts    Int       @default(0)
+  lastError   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Peripherals and sync
+// ---------------------------------------------------------------------------
+
+/// A printer failure must never block or roll back a sale, so print jobs are
+/// queued here and retried independently of the sale that produced them.
+model PrintJob {
+  id     String  @id @default(cuid())
+  saleId String?
+  sale   Sale?   @relation(fields: [saleId], references: [id])
+
+  /// RECEIPT | DUPLICATE | LABEL
+  kind String
+
+  /// Rendered ESC/POS payload, base64 encoded.
+  payload String
+
+  /// QUEUED | PRINTING | DONE | FAILED
+  status    String @default("QUEUED")
+  attempts  Int    @default(0)
+  lastError String?
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([status, createdAt])
+}
+
+/// Outbound changes this terminal owes the central server. Sales are written
+/// locally first and drain from here whenever the network comes back.
+model SyncQueue {
+  id String @id @default(cuid())
+
+  /// SALE | STOCK_MOVEMENT | BREAKDOWN
+  entity   String
+  entityId String
+
+  /// JSON body to send.
+  payload String
+
+  /// PENDING | SENT | FAILED
+  status    String @default("PENDING")
+  attempts  Int    @default(0)
+  lastError String?
+
+  createdAt DateTime  @default(now())
+  sentAt    DateTime?
+
+  @@index([status, createdAt])
+}
+
+/// Per-terminal receipt counter. The prefix keeps offline terminals apart.
+model ReceiptCounter {
+  terminalId String @id
+  prefix     String
+  nextNumber Int    @default(1)
+  updatedAt  DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Audit
+// ---------------------------------------------------------------------------
+
+/// Append-only. Nothing in this application deletes or updates an audit row.
+model AuditEvent {
+  id String @id @default(cuid())
+
+  /// VOID_SALE | REFUND | LINE_DISCOUNT | SALE_DISCOUNT | PRICE_CHANGE |
+  /// STOCK_ADJUSTMENT | BREAKDOWN | USER_CREATED | ROLE_CHANGED | PIN_CHANGED |
+  /// SETTING_CHANGED | LOGIN | LOGIN_FAILED | DRAWER_OPENED
+  action String
+
+  /// The table and row the event concerns.
+  entity   String
+  entityId String?
+
+  /// JSON of the values before and after. Both are kept: an audit line that
+  /// only records the new value cannot answer "what did they change it from".
+  before String?
+  after  String?
+
+  actorId String
+  actor   User   @relation("AuditActor", fields: [actorId], references: [id])
+
+  /// The manager who authorised it, when the action needed a manager PIN.
+  approverId String?
+  approver   User?   @relation("AuditApprover", fields: [approverId], references: [id])
+
+  reason     String?
+  terminalId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([action, createdAt])
+  @@index([actorId, createdAt])
+  @@index([entity, entityId])
+}
+
+// ---------------------------------------------------------------------------
+// Settings
+// ---------------------------------------------------------------------------
+
+/// Key/value shop settings. Typed accessors live in lib/settings.ts.
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

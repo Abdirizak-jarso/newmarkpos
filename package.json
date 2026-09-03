@@ -1,0 +1,45 @@
+{
+  "name": "newmark-pos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "seed": "tsx prisma/seed.ts",
+    "db:push": "prisma db push",
+    "db:reset": "prisma db push --force-reset && npm run seed",
+    "db:studio": "prisma studio",
+    "test:integration": "npm run test:setup && vitest run --config vitest.integration.config.ts",
+    "test:setup": "rm -f newmark-test.db newmark-test.db-journal && DATABASE_URL=\"file:./newmark-test.db\" prisma db push && DATABASE_URL=\"file:./newmark-test.db\" PIN_PEPPER=\"test-pepper-not-used-anywhere-real-0123456789abcdef\" tsx prisma/seed.ts",
+    "test:all": "npm run test && npm run test:integration"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.10.0",
+    "@prisma/client": "7.10.0",
+    "dotenv": "^17.4.2",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "prisma": "7.10.0",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

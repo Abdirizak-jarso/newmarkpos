@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+/*
+ * Newmark POS.
+ *
+ * Two surfaces, one system. The till is built to look like counter equipment
+ * rather than a web page: a matte steel chassis with one lit readout on it,
+ * read at arm's length under fluorescent light while the cashier's hands are
+ * busy. The back office is enamel-tile pale, because it is read sitting down.
+ *
+ * Touch targets on the till are never below 56px — the people using it are
+ * wearing gloves.
+ */
+
+@theme {
+  /*
+   * Newmark's colours come off the counter itself.
+   *
+   * The till is a weighing instrument: a cold matte chassis with exactly one
+   * lit surface on it. Everything structural is steel — the shop's cold room
+   * and its stainless benches, a grey that leans blue-green rather than the
+   * neutral charcoal a web app reaches for. Brass is the interactive colour,
+   * off the scale weights and the pendant light over the counter.
+   *
+   * Red is NOT decoration here. It is the colour of the product and of money,
+   * so it is spent only on the sale total, refunds, voids and the manager
+   * approvals that move money. If red is on screen, shillings are at stake.
+   */
+
+  /* Steel — the chassis. Light end serves the back office, dark end the till. */
+  --color-char-50: #f2f4f3;
+  --color-char-100: #e4e8e7;
+  --color-char-200: #cbd2d1;
+  --color-char-300: #a9b3b2;
+  --color-char-400: #7f8c8b;
+  --color-char-500: #63706f;
+  --color-char-600: #4e5a5a;
+  --color-char-700: #3a4547;
+  --color-char-800: #2a3438;
+  --color-char-900: #171e21;
+  --color-char-950: #0f1417;
+
+  /* Brass — anything the cashier acts on. */
+  --color-brass-50: #fbf4e6;
+  --color-brass-100: #f5e6c4;
+  --color-brass-200: #ead199;
+  --color-brass-300: #ddb86a;
+  --color-brass-400: #d0a044;
+  --color-brass-500: #c98a2b;
+  --color-brass-600: #ae7220;
+  --color-brass-700: #8c591a;
+  --color-brass-800: #6b4415;
+  --color-brass-900: #4a2f10;
+  --color-brass-950: #2a1b09;
+
+  /* Oxblood — money and the things that move it. Used sparingly, on purpose. */
+  --color-meat-50: #faf0f0;
+  --color-meat-100: #f2dcdc;
+  --color-meat-200: #e4bbbb;
+  --color-meat-300: #ce8e8e;
+  --color-meat-400: #b26060;
+  --color-meat-500: #97403f;
+  --color-meat-600: #7e2029;
+  --color-meat-700: #6b1c23;
+  --color-meat-800: #55171d;
+  --color-meat-900: #401318;
+  --color-meat-950: #26090c;
+
+  /* The readout. Wax paper, the only lit surface on the chassis. */
+  --color-bone: #efeae0;
+  --color-bone-dim: #b8b1a2;
+
+  /* Enamel tile — the back office ground. The shop's wall, not a sheet of paper. */
+  --color-tile: #e9ecea;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /*
+   * Radius carries meaning: flat sheet is chassis, a rounded corner is
+   * something you press. Nothing gets a curve for decoration.
+   */
+  --radius-sheet: 3px;
+  --radius-key: 10px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  /* A cashier dragging a finger down the product grid should not bounce the
+     whole page; the panes scroll, the page does not. */
+  overscroll-behavior: none;
+}
+
+/* Figures that must line up in a column — totals, weights, prices. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/*
+ * The readout.
+ *
+ * Weighing equipment sets its figures wide, because a wide digit is legible
+ * from further away and across a counter at an angle. Archivo carries a width
+ * axis, so this is the real thing rather than letter-spacing pushed apart.
+ */
+.readout {
+  font-stretch: 115%;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.015em;
+}
+
+/* The shop's name and section headings, set in the same wide cut. */
+.wide {
+  font-stretch: 112%;
+}
+
+/*
+ * The lit surface. Only one of these belongs on a screen at a time: the figure
+ * the cashier and the customer are both looking at.
+ */
+.lit {
+  background-color: var(--color-bone);
+  color: var(--color-char-950);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(0 0 0 / 0.15),
+    0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+/*
+ * A key. Pressed with a thumb, so it has a top edge catching the light and a
+ * shadow under it that collapses when it goes down.
+ */
+.key {
+  border-radius: var(--radius-key);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.09),
+    0 1px 0 rgb(0 0 0 / 0.4);
+  transition:
+    transform 60ms ease-out,
+    background-color 120ms ease-out;
+}
+
+.key:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
+}
+
+/* Sheet metal: the chassis panels. Square, because they are not pressed. */
+.sheet {
+  border-radius: var(--radius-sheet);
+}
+
+/* Keyboard focus has to be visible on a steel ground under strip lighting. */
+:focus-visible {
+  outline: 2px solid var(--color-brass-400);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Till controls. Big enough to hit with a gloved thumb, no hover dependency. */
+.touch-target {
+  min-height: 3.5rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.till-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-char-600) transparent;
+}
+
+.till-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.till-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--color-char-600);
+  border-radius: 9999px;
+}
+
+@keyframes pulse-once {
+  0% {
+    background-color: var(--color-brass-800);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.flash {
+  animation: pulse-once 600ms ease-out;
+}
+
+/* The receipt preview is a fixed-width document; it must not reflow. */
+.receipt-paper {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: pre;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
