@@ -8,7 +8,7 @@ import type { Grams } from "../weight";
  * Reports.
  *
  * All figures come out of the stored sale rows, which were written by
- * lib/pricing.ts — so a report and the receipts agree by construction rather
+ * lib/pricing.ts - so a report and the receipts agree by construction rather
  * than by two implementations happening to match.
  *
  * Voided sales are excluded everywhere. Refunds are included as the negative
@@ -40,7 +40,7 @@ export interface SalesSummary {
   /**
    * What the meat sold in this period cost the shop, and what it made on it.
    *
-   * `costed` is the share of revenue whose cost is actually known — a product
+   * `costed` is the share of revenue whose cost is actually known - a product
    * that has never been through an intake or a breakdown has no cost on file,
    * and counting it as free would flatter the margin. Anything below 100% means
    * the margin is a floor, not a figure.
@@ -49,6 +49,12 @@ export interface SalesSummary {
   costedPercent: number;
   /** Reductions given at the counter, which come straight off the margin. */
   givenAway: Cents;
+  /** Takings by day, by hour of the shop's day, and by who rang them up. */
+  byDay: DayTakings[];
+  byHour: HourTakings[];
+  byCashier: CashierTakings[];
+  busiestHour: HourTakings | null;
+  bestDay: DayTakings | null;
 }
 
 export async function salesSummary(from: Date, to: Date): Promise<SalesSummary> {
@@ -60,8 +66,14 @@ export async function salesSummary(from: Date, to: Date): Promise<SalesSummary> 
     include: {
       lines: { include: { product: { include: { category: true } } } },
       payments: true,
+      user: { select: { id: true, name: true } },
     },
   });
+
+  // Bucketed from the sales already in hand. Asking the database a second time
+  // for the same rows costs another few hundred milliseconds and another
+  // connection, and this page opens several at once as it is.
+  const buckets = bucketSales(sales, from, to);
 
   const refunds = sales.filter((s) => s.total < 0);
 
@@ -143,6 +155,7 @@ export async function salesSummary(from: Date, to: Date): Promise<SalesSummary> 
     margin: margin(net, totalCost),
     costedPercent: net === 0 ? 0 : Math.round((costedRevenue / net) * 1000) / 10,
     givenAway,
+    ...buckets,
   };
 }
 
@@ -152,7 +165,7 @@ export interface MarginRow {
   weightGrams: Grams;
   revenue: Cents;
   cost: Cents;
-  /** Reductions given at the counter on this cut — margin handed over by hand. */
+  /** Reductions given at the counter on this cut - margin handed over by hand. */
   givenAway: Cents;
   margin: Cents;
   marginPercent: number;
@@ -160,7 +173,7 @@ export interface MarginRow {
 
 /**
  * Margin by product. Cost comes from the product's cost per kg, which intake
- * and carcass breakdown keep current — so a cut whose real cost rose because
+ * and carcass breakdown keep current - so a cut whose real cost rose because
  * the last carcass shrank more than usual shows up here.
  */
 export async function marginReport(from: Date, to: Date): Promise<MarginRow[]> {
@@ -190,7 +203,7 @@ export async function marginReport(from: Date, to: Date): Promise<MarginRow[]> {
      * The cost stamped on the line when it was sold.
      *
      * This used to read the product's cost as it stands TODAY, which meant
-     * every delivery quietly reprised last month's margins — a figure that
+     * every delivery quietly reprised last month's margins - a figure that
      * moved after the fact. Lines written before the column existed have no
      * stamp, so they still fall back to today's cost; that is the old, wrong
      * behaviour, kept only so historic rows show something rather than a
@@ -266,16 +279,223 @@ export async function yieldReport(from: Date, to: Date): Promise<{
   };
 }
 
+/*
+ * The shop's clock, not the server's.
+ *
+ * `setHours(0,0,0,0)` gives midnight where the process happens to be running,
+ * and this one runs on Vercel in UTC while the counter is in Nairobi. That
+ * makes "today" begin at 03:00 EAT: a sale rung at half one in the morning
+ * lands on yesterday's takings, and the owner opening the reports before 3am
+ * is shown the wrong day. Kenya is UTC+3 and has no daylight saving, so a
+ * fixed offset is the entire rule.
+ */
+const SHOP_OFFSET_MS = 3 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Midnight at the counter, expressed as the instant it happens. */
 export function startOfDay(at = new Date()): Date {
-  const d = new Date(at);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  const shopClock = new Date(at.getTime() + SHOP_OFFSET_MS);
+  const midnight = Date.UTC(
+    shopClock.getUTCFullYear(),
+    shopClock.getUTCMonth(),
+    shopClock.getUTCDate(),
+  );
+  return new Date(midnight - SHOP_OFFSET_MS);
 }
 
 export function endOfDay(at = new Date()): Date {
-  const d = new Date(at);
-  d.setHours(23, 59, 59, 999);
-  return d;
+  return new Date(startOfDay(at).getTime() + DAY_MS - 1);
+}
+
+export function addDays(at: Date, days: number): Date {
+  return new Date(at.getTime() + days * DAY_MS);
+}
+
+/** `2026-09-08` as the counter would date it, for grouping and for URLs. */
+export function shopDateKey(at: Date): string {
+  return new Date(at.getTime() + SHOP_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/** The hour of the shop's day, 0-23, that this instant fell in. */
+function shopHour(at: Date): number {
+  return new Date(at.getTime() + SHOP_OFFSET_MS).getUTCHours();
+}
+
+/**
+ * The window immediately before this one, of the same length.
+ *
+ * A figure on its own says nothing - KSh 40,000 is a good week or a bad one
+ * depending on last week. This is what every "vs" on the reports page compares
+ * against.
+ */
+export function previousPeriod(from: Date, to: Date): { from: Date; to: Date } {
+  const span = to.getTime() - from.getTime();
+  return { from: new Date(from.getTime() - span - 1), to: new Date(from.getTime() - 1) };
+}
+
+export interface DayTakings {
+  /** `2026-09-08`, the key a day-scoped page is linked by. */
+  date: string;
+  label: string;
+  saleCount: number;
+  net: Cents;
+  weightGrams: Grams;
+}
+
+export interface HourTakings {
+  hour: number;
+  label: string;
+  saleCount: number;
+  net: Cents;
+}
+
+export interface CashierTakings {
+  userId: string;
+  name: string;
+  saleCount: number;
+  net: Cents;
+  weightGrams: Grams;
+  averageSale: Cents;
+}
+
+/** What `bucketSales` needs off a sale. Anything with these fields will do. */
+interface BucketableSale {
+  total: Cents;
+  totalWeightGrams: Grams;
+  completedAt: Date | null;
+  user: { id: string; name: string };
+}
+
+export interface SalesBuckets {
+  byDay: DayTakings[];
+  byHour: HourTakings[];
+  byCashier: CashierTakings[];
+  busiestHour: HourTakings | null;
+  bestDay: DayTakings | null;
+}
+
+/**
+ * Takings sliced by day, by hour of the shop's day, and by cashier.
+ *
+ * Pure: it is handed the sales rather than fetching them, so the summary can
+ * bucket the rows it already has instead of asking the database again.
+ *
+ * Days with no sales are still returned. A gap in the middle of a chart reads
+ * as missing data; a bar of zero reads as a quiet Tuesday, which is what it is.
+ */
+export function bucketSales(
+  sales: readonly BucketableSale[],
+  from: Date,
+  to: Date,
+): SalesBuckets {
+  const days = new Map<string, DayTakings>();
+  for (let at = startOfDay(from); at <= to; at = addDays(at, 1)) {
+    const date = shopDateKey(at);
+    days.set(date, {
+      date,
+      label: at.toLocaleDateString("en-KE", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        timeZone: "Africa/Nairobi",
+      }),
+      saleCount: 0,
+      net: 0,
+      weightGrams: 0,
+    });
+  }
+
+  const hours: HourTakings[] = Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    label: `${String(hour).padStart(2, "0")}:00`,
+    saleCount: 0,
+    net: 0,
+  }));
+
+  const cashiers = new Map<string, CashierTakings>();
+
+  for (const sale of sales) {
+    const at = sale.completedAt;
+    if (!at) continue;
+
+    const day = days.get(shopDateKey(at));
+    if (day) {
+      day.saleCount += 1;
+      day.net += sale.total;
+      day.weightGrams += sale.totalWeightGrams;
+    }
+
+    const hour = hours[shopHour(at)];
+    if (hour) {
+      hour.saleCount += 1;
+      hour.net += sale.total;
+    }
+
+    const cashier = cashiers.get(sale.user.id) ?? {
+      userId: sale.user.id,
+      name: sale.user.name,
+      saleCount: 0,
+      net: 0,
+      weightGrams: 0,
+      averageSale: 0,
+    };
+    cashier.saleCount += 1;
+    cashier.net += sale.total;
+    cashier.weightGrams += sale.totalWeightGrams;
+    cashiers.set(sale.user.id, cashier);
+  }
+
+  const byDay = [...days.values()];
+  const traded = hours.filter((hour) => hour.saleCount > 0);
+
+  return {
+    byDay,
+    byHour: hours,
+    byCashier: [...cashiers.values()]
+      .map((cashier) => ({
+        ...cashier,
+        averageSale: cashier.saleCount === 0 ? 0 : Math.round(cashier.net / cashier.saleCount),
+      }))
+      .sort((a, b) => b.net - a.net),
+    busiestHour:
+      traded.length === 0 ? null : traded.reduce((best, h) => (h.net > best.net ? h : best)),
+    bestDay: byDay.length === 0 ? null : byDay.reduce((best, d) => (d.net > best.net ? d : best)),
+  };
+}
+
+export interface PeriodTotals {
+  net: Cents;
+  saleCount: number;
+  weightGrams: Grams;
+  averageSale: Cents;
+}
+
+/**
+ * The headline figures for a window, and nothing else.
+ *
+ * This exists for the "vs the period before" comparison, which needs four
+ * numbers and not a full summary. It is one aggregate in the database rather
+ * than every sale and every line pulled across the wire to be added up here.
+ */
+export async function periodTotals(from: Date, to: Date): Promise<PeriodTotals> {
+  const result = await db.sale.aggregate({
+    where: {
+      status: { in: ["COMPLETED", "REFUNDED"] },
+      completedAt: { gte: from, lte: to },
+    },
+    _sum: { total: true, totalWeightGrams: true },
+    _count: { _all: true },
+  });
+
+  const net = result._sum.total ?? 0;
+  const saleCount = result._count._all;
+
+  return {
+    net,
+    saleCount,
+    weightGrams: result._sum.totalWeightGrams ?? 0,
+    averageSale: saleCount === 0 ? 0 : Math.round(net / saleCount),
+  };
 }
 
 export interface CarcassLedgerEntry {
@@ -324,13 +544,13 @@ export interface CarcassLedgerEntry {
  *
  * A butchery's real question is not what it sold today, it is whether the animal
  * it bought on Tuesday was worth buying. Everything needed to answer that is
- * already recorded — the carcass cost, the yields, the trim loss, the board
- * prices, the sales — and until now nothing put the two halves together.
+ * already recorded - the carcass cost, the yields, the trim loss, the board
+ * prices, the sales - and until now nothing put the two halves together.
  *
  * ONE HONEST LIMITATION, and it is worth stating rather than hiding behind a
  * confident-looking number: cuts are not lot-traced. Once a leg goes into the
  * case it is indistinguishable from last week's leg. So sales are attributed to
- * a carcass by TIME — the window from this breakdown until the next breakdown
+ * a carcass by TIME - the window from this breakdown until the next breakdown
  * of the same source animal. That is right when the shop breaks down one animal
  * at a time and sells it through, which is how this counter works, and it drifts
  * when two carcasses of the same source overlap in the case. The window is shown
