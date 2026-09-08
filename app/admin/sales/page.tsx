@@ -3,9 +3,22 @@ import { requirePagePermission, getCurrentUser } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { formatCents } from "@/lib/money";
 import { formatKg } from "@/lib/weight";
-import { addDays, endOfDay, shopDateKey, startOfDay } from "@/lib/services/reports";
-import { Badge, Card, Money, PageHeader, StatCard, Table } from "@/components/admin/ui";
+import {
+  addDays,
+  endOfDay,
+  shopDateKey,
+  startOfDay,
+} from "@/lib/services/reports";
+import {
+  Badge,
+  Card,
+  Money,
+  PageHeader,
+  StatCard,
+  Table,
+} from "@/components/admin/ui";
 import { SaleActions } from "./SaleActions";
+import { SHOP_TIME_ZONE } from "@/lib/shop-clock";
 
 export const dynamic = "force-dynamic";
 
@@ -35,15 +48,23 @@ function resolveWindow(params: { period?: string; day?: string }): {
   if (params.day && /^\d{4}-\d{2}-\d{2}$/.test(params.day)) {
     const at = new Date(`${params.day}T12:00:00Z`);
     if (!Number.isNaN(at.getTime())) {
-      return { from: startOfDay(at), to: endOfDay(at), periodKey: null, day: params.day };
+      return {
+        from: startOfDay(at),
+        to: endOfDay(at),
+        periodKey: null,
+        day: params.day,
+      };
     }
   }
 
   const periodKey: PeriodKey =
-    params.period && params.period in PERIODS ? (params.period as PeriodKey) : "today";
+    params.period && params.period in PERIODS
+      ? (params.period as PeriodKey)
+      : "today";
   const period = PERIODS[periodKey];
 
-  if (period.days === null) return { from: null, to: null, periodKey, day: null };
+  if (period.days === null)
+    return { from: null, to: null, periodKey, day: null };
   return {
     from: startOfDay(addDays(new Date(), -period.days)),
     to: endOfDay(),
@@ -94,7 +115,10 @@ export default async function SalesPage({
 
   const today = shopDateKey(new Date());
   const takings = sales.reduce((total, sale) => total + sale.total, 0);
-  const weightGrams = sales.reduce((total, sale) => total + sale.totalWeightGrams, 0);
+  const weightGrams = sales.reduce(
+    (total, sale) => total + sale.totalWeightGrams,
+    0,
+  );
   const awaitingCode = sales.filter((sale) =>
     sale.payments.some((p) => p.method === "MPESA" && p.status === "PENDING"),
   ).length;
@@ -122,7 +146,7 @@ export default async function SalesPage({
                   timeZone: "Africa/Nairobi",
                 })
               : from && to
-                ? `${from.toLocaleDateString("en-KE")} to ${to.toLocaleDateString("en-KE")}`
+                ? `${from.toLocaleDateString("en-KE", { timeZone: SHOP_TIME_ZONE })} to ${to.toLocaleDateString("en-KE", { timeZone: SHOP_TIME_ZONE })}`
                 : "Every sale, newest first"
         }
         action={
@@ -192,7 +216,9 @@ export default async function SalesPage({
                   key={key}
                   href={`/admin/sales?period=${key}`}
                   className={`sheet px-3 py-1.5 text-sm font-medium ${
-                    key === periodKey ? "bg-char-50 text-char-900 shadow-sm" : "text-char-600"
+                    key === periodKey
+                      ? "bg-char-50 text-char-900 shadow-sm"
+                      : "text-char-600"
                   }`}
                 >
                   {PERIODS[key].label}
@@ -201,7 +227,11 @@ export default async function SalesPage({
             </nav>
 
             <a
-              href={day ? `/admin/reports?day=${day}` : `/admin/reports?range=${periodKey === "all" ? "quarter" : periodKey}`}
+              href={
+                day
+                  ? `/admin/reports?day=${day}`
+                  : `/admin/reports?range=${periodKey === "all" ? "quarter" : periodKey}`
+              }
               className="ml-auto text-sm font-medium text-char-600 underline hover:text-char-900"
             >
               Analytics for this period &rarr;
@@ -211,7 +241,10 @@ export default async function SalesPage({
 
         {!query && (
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label="Takings" value={formatCents(takings, { symbol: true })} />
+            <StatCard
+              label="Takings"
+              value={formatCents(takings, { symbol: true })}
+            />
             <StatCard
               label="Sales"
               value={String(sales.length)}
@@ -222,14 +255,27 @@ export default async function SalesPage({
               label="Waiting for a code"
               value={String(awaitingCode)}
               tone={awaitingCode > 0 ? "warn" : "neutral"}
-              hint={awaitingCode > 0 ? "M-Pesa paid, code not yet entered" : "All codes in"}
+              hint={
+                awaitingCode > 0
+                  ? "M-Pesa paid, code not yet entered"
+                  : "All codes in"
+              }
             />
           </div>
         )}
 
         <Card>
           <Table
-            headers={["Receipt", "When", "Cashier", "Items", "Payment", "eTIMS", "Total", ""]}
+            headers={[
+              "Receipt",
+              "When",
+              "Cashier",
+              "Items",
+              "Payment",
+              "eTIMS",
+              "Total",
+              "",
+            ]}
             empty={
               query
                 ? `No sales match “${query}”.`
@@ -239,9 +285,14 @@ export default async function SalesPage({
             }
           >
             {sales.map((sale) => (
-              <tr key={sale.id} className={sale.status === "VOIDED" ? "opacity-60" : ""}>
+              <tr
+                key={sale.id}
+                className={sale.status === "VOIDED" ? "opacity-60" : ""}
+              >
                 <td className="px-3 py-2">
-                  <span className="tabular font-medium text-char-900">{sale.receiptNumber}</span>
+                  <span className="tabular font-medium text-char-900">
+                    {sale.receiptNumber}
+                  </span>
                   {sale.status !== "COMPLETED" && (
                     <span className="ml-2">
                       <Badge tone={sale.status === "VOIDED" ? "bad" : "warn"}>
@@ -256,23 +307,32 @@ export default async function SalesPage({
                   )}
                 </td>
                 <td className="px-3 py-2 text-xs text-char-500">
-                  {(sale.completedAt ?? sale.createdAt).toLocaleString("en-KE", {
-                    day: "2-digit",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {(sale.completedAt ?? sale.createdAt).toLocaleString(
+                    "en-KE",
+                    {
+                      day: "2-digit",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      timeZone: SHOP_TIME_ZONE,
+                    },
+                  )}
                 </td>
                 <td className="px-3 py-2 text-char-600">{sale.user.name}</td>
                 <td className="tabular px-3 py-2 text-char-600">
-                  {sale.lines.length} {sale.lines.length === 1 ? "line" : "lines"}, {formatKg(sale.totalWeightGrams)} kg
+                  {sale.lines.length}{" "}
+                  {sale.lines.length === 1 ? "line" : "lines"},{" "}
+                  {formatKg(sale.totalWeightGrams)} kg
                 </td>
                 <td className="px-3 py-2 text-xs text-char-600">
                   {sale.payments.length === 0
                     ? "-"
                     : sale.payments.map((payment) =>
                         payment.reference ? (
-                          <span key={payment.id} className="tabular block tracking-wider">
+                          <span
+                            key={payment.id}
+                            className="tabular block tracking-wider"
+                          >
                             {payment.reference}
                           </span>
                         ) : (
@@ -310,7 +370,9 @@ export default async function SalesPage({
                     total={sale.total}
                     awaitingCodePaymentId={
                       sale.payments.find(
-                        (p) => p.method === "MPESA" && (p.status !== "CONFIRMED" || !p.reference),
+                        (p) =>
+                          p.method === "MPESA" &&
+                          (p.status !== "CONFIRMED" || !p.reference),
                       )?.id ?? null
                     }
                     permissions={permissions}

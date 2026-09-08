@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { addDays, endOfDay, previousPeriod, shopDateKey, startOfDay } from "@/lib/services/reports";
+import { previousPeriod } from "@/lib/services/reports";
+import { addDays, endOfDay, formatShopDateTime, shopDateKey, startOfDay } from "@/lib/shop-clock";
 
 /**
  * Day boundaries are the counter's, not the server's.
@@ -61,5 +62,19 @@ describe("comparing against the period before", () => {
 
     expect(shopDateKey(before.from)).toBe("2026-08-26");
     expect(shopDateKey(before.to)).toBe("2026-09-01");
+  });
+});
+
+describe("the receipt's clock", () => {
+  it("stamps the counter's time, not the server's", () => {
+    // A sale rung at 03:48 in Nairobi is 00:48 UTC. On Vercel the receipt was
+    // being stamped 00:48 - three hours before the customer was standing
+    // there, and three hours off whatever Safaricom's statement says.
+    expect(formatShopDateTime(new Date("2026-09-08T00:48:00Z"))).toBe("08/09/2026 03:48");
+  });
+
+  it("rolls the date over at midnight on the counter's clock", () => {
+    // 21:30 UTC is 00:30 the next morning in Nairobi.
+    expect(formatShopDateTime(new Date("2026-09-07T21:30:00Z"))).toBe("08/09/2026 00:30");
   });
 });

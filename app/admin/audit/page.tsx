@@ -1,11 +1,18 @@
 import { db } from "@/lib/db";
 import { requirePagePermission } from "@/lib/session";
 import { Badge, Card, PageHeader, Table } from "@/components/admin/ui";
+import { SHOP_TIME_ZONE } from "@/lib/shop-clock";
 
 export const dynamic = "force-dynamic";
 
 /** Actions worth colouring red in a list somebody scans for trouble. */
-const SERIOUS = new Set(["VOID_SALE", "REFUND", "PRICE_CHANGE", "STOCK_ADJUSTMENT", "LOGIN_FAILED"]);
+const SERIOUS = new Set([
+  "VOID_SALE",
+  "REFUND",
+  "PRICE_CHANGE",
+  "STOCK_ADJUSTMENT",
+  "LOGIN_FAILED",
+]);
 
 export default async function AuditPage({
   searchParams,
@@ -58,7 +65,14 @@ export default async function AuditPage({
       <div className="p-8">
         <Card>
           <Table
-            headers={["When", "Action", "By", "Approved by", "What changed", "Reason"]}
+            headers={[
+              "When",
+              "Action",
+              "By",
+              "Approved by",
+              "What changed",
+              "Reason",
+            ]}
             empty="Nothing recorded yet."
           >
             {events.map((event) => (
@@ -69,6 +83,7 @@ export default async function AuditPage({
                     month: "short",
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: SHOP_TIME_ZONE,
                   })}
                 </td>
                 <td className="px-3 py-2">
@@ -78,12 +93,18 @@ export default async function AuditPage({
                 </td>
                 <td className="px-3 py-2 text-char-700">{event.actor.name}</td>
                 <td className="px-3 py-2 text-char-600">
-                  {event.approver ? event.approver.name : <span className="text-char-400">-</span>}
+                  {event.approver ? (
+                    event.approver.name
+                  ) : (
+                    <span className="text-char-400">-</span>
+                  )}
                 </td>
                 <td className="px-3 py-2">
                   <Change before={event.before} after={event.after} />
                 </td>
-                <td className="px-3 py-2 text-xs text-char-600">{event.reason ?? "-"}</td>
+                <td className="px-3 py-2 text-xs text-char-600">
+                  {event.reason ?? "-"}
+                </td>
               </tr>
             ))}
           </Table>
@@ -98,7 +119,13 @@ export default async function AuditPage({
  * value could not answer "what did they change it from", which is the whole
  * question this log exists to answer.
  */
-function Change({ before, after }: { before: string | null; after: string | null }) {
+function Change({
+  before,
+  after,
+}: {
+  before: string | null;
+  after: string | null;
+}) {
   const parse = (value: string | null) => {
     if (!value) return null;
     try {
@@ -112,7 +139,9 @@ function Change({ before, after }: { before: string | null; after: string | null
   const to = parse(after);
   if (!from && !to) return <span className="text-char-400">-</span>;
 
-  const keys = [...new Set([...Object.keys(from ?? {}), ...Object.keys(to ?? {})])].slice(0, 4);
+  const keys = [
+    ...new Set([...Object.keys(from ?? {}), ...Object.keys(to ?? {})]),
+  ].slice(0, 4);
 
   return (
     <ul className="space-y-0.5 text-xs">
@@ -126,11 +155,15 @@ function Change({ before, after }: { before: string | null; after: string | null
             <span className="text-char-500">{key}: </span>
             {oldValue !== undefined && !same && (
               <>
-                <span className="text-meat-700 line-through">{format(oldValue)}</span>{" "}
+                <span className="text-meat-700 line-through">
+                  {format(oldValue)}
+                </span>{" "}
                 <span className="text-char-400">→</span>{" "}
               </>
             )}
-            <span className="text-char-800">{format(newValue ?? oldValue)}</span>
+            <span className="text-char-800">
+              {format(newValue ?? oldValue)}
+            </span>
           </li>
         );
       })}

@@ -6,6 +6,7 @@ import { formatCents } from "@/lib/money";
 import { formatKg } from "@/lib/weight";
 import { Badge, Card, PageHeader, Table } from "@/components/admin/ui";
 import { StockForms } from "./StockForms";
+import { SHOP_TIME_ZONE } from "@/lib/shop-clock";
 
 export const dynamic = "force-dynamic";
 
@@ -67,25 +68,35 @@ export default async function StockPage() {
         )}
 
         <Card title="On hand">
-          <Table headers={["Product", "Category", "Cost/kg", "Value", "On hand"]}>
+          <Table
+            headers={["Product", "Category", "Cost/kg", "Value", "On hand"]}
+          >
             {products.map((product) => {
               const low = product.stockGrams <= settings.lowStockWarningGrams;
               return (
                 <tr key={product.id}>
                   <td className="px-3 py-2">
-                    <span className="font-medium text-char-900">{product.name}</span>
+                    <span className="font-medium text-char-900">
+                      {product.name}
+                    </span>
                     {product.isByProduct && (
                       <span className="ml-2">
                         <Badge>by-product</Badge>
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-char-600">{product.category.name}</td>
+                  <td className="px-3 py-2 text-char-600">
+                    {product.category.name}
+                  </td>
                   <td className="tabular px-3 py-2 text-char-600">
                     {formatCents(product.costPerKg)}
                   </td>
                   <td className="tabular px-3 py-2 text-char-600">
-                    {formatCents(Math.round((product.costPerKg * product.stockGrams) / 1000))}
+                    {formatCents(
+                      Math.round(
+                        (product.costPerKg * product.stockGrams) / 1000,
+                      ),
+                    )}
                   </td>
                   <td className="tabular px-3 py-2 text-right">
                     <span
@@ -119,15 +130,19 @@ export default async function StockPage() {
                     month: "short",
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: SHOP_TIME_ZONE,
                   })}
                 </td>
-                <td className="px-3 py-2 font-medium text-char-900">{movement.product.name}</td>
+                <td className="px-3 py-2 font-medium text-char-900">
+                  {movement.product.name}
+                </td>
                 <td className="px-3 py-2">
                   <Badge
                     tone={
                       movement.reason === "WASTE"
                         ? "bad"
-                        : movement.reason === "INTAKE" || movement.reason === "BREAKDOWN_OUT"
+                        : movement.reason === "INTAKE" ||
+                            movement.reason === "BREAKDOWN_OUT"
                           ? "good"
                           : "neutral"
                     }
@@ -135,13 +150,21 @@ export default async function StockPage() {
                     {REASON_LABELS[movement.reason] ?? movement.reason}
                   </Badge>
                   {movement.note && (
-                    <span className="ml-2 text-xs text-char-500">{movement.note}</span>
+                    <span className="ml-2 text-xs text-char-500">
+                      {movement.note}
+                    </span>
                   )}
                 </td>
-                <td className="px-3 py-2 text-char-600">{movement.actor.name}</td>
+                <td className="px-3 py-2 text-char-600">
+                  {movement.actor.name}
+                </td>
                 <td className="tabular px-3 py-2">
                   <span
-                    className={movement.deltaGrams < 0 ? "text-meat-700" : "text-emerald-700"}
+                    className={
+                      movement.deltaGrams < 0
+                        ? "text-meat-700"
+                        : "text-emerald-700"
+                    }
                   >
                     {movement.deltaGrams > 0 ? "+" : ""}
                     {formatKg(movement.deltaGrams)} kg

@@ -2,6 +2,7 @@ import { formatCents } from "@/lib/money";
 import { formatKg } from "@/lib/weight";
 import { Card } from "@/components/admin/ui";
 import type { CarcassLedgerEntry } from "@/lib/services/reports";
+import { SHOP_TIME_ZONE } from "@/lib/shop-clock";
 
 /**
  * Did the animal earn its keep?
@@ -25,9 +26,12 @@ export function CarcassLedger({ entries }: { entries: CarcassLedgerEntry[] }) {
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between">
-        <h2 className="wide text-lg font-semibold text-char-900">Carcass ledger</h2>
+        <h2 className="wide text-lg font-semibold text-char-900">
+          Carcass ledger
+        </h2>
         <p className="text-xs text-char-500">
-          Sales attributed by time, from each breakdown to the next of the same animal
+          Sales attributed by time, from each breakdown to the next of the same
+          animal
         </p>
       </div>
 
@@ -45,20 +49,31 @@ function CarcassCard({ entry }: { entry: CarcassLedgerEntry }) {
   return (
     <article className="sheet border border-char-200 bg-char-50">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-char-200 px-4 py-3">
-        <h3 className="wide text-base font-semibold text-char-900">{entry.sourceName}</h3>
+        <h3 className="wide text-base font-semibold text-char-900">
+          {entry.sourceName}
+        </h3>
         <p className="text-xs text-char-500">
           {formatKg(entry.inputWeightGrams)} kg in,{" "}
-          {formatKg(entry.outputWeightGrams)} kg of cuts, {entry.lossPercent}% lost to trim
+          {formatKg(entry.outputWeightGrams)} kg of cuts, {entry.lossPercent}%
+          lost to trim
           {entry.supplier ? ` · ${entry.supplier}` : ""}
           {" · "}
-          {entry.brokenDownAt.toLocaleDateString("en-KE", { day: "2-digit", month: "short" })}
+          {entry.brokenDownAt.toLocaleDateString("en-KE", {
+            day: "2-digit",
+            month: "short",
+            timeZone: SHOP_TIME_ZONE,
+          })}
         </p>
       </header>
 
       <div className="grid gap-x-8 gap-y-4 p-4 md:grid-cols-2">
         <dl className="space-y-1.5 text-sm">
           <Line label="Cost of the animal" value={formatCents(entry.costIn)} />
-          <Line label="Cuts at board price" value={formatCents(entry.boardValue)} muted />
+          <Line
+            label="Cuts at board price"
+            value={formatCents(entry.boardValue)}
+            muted
+          />
 
           <div className="!mt-3 border-t border-char-200 pt-2.5">
             <Line label="Sold so far" value={formatCents(entry.sold)} strong />
@@ -82,8 +97,9 @@ function CarcassCard({ entry }: { entry: CarcassLedgerEntry }) {
         <div>
           {uncosted ? (
             <p className="text-sm text-char-500">
-              No cost was recorded for this carcass, so there is nothing to measure the sales
-              against. Enter what it cost on the breakdown to see whether it paid.
+              No cost was recorded for this carcass, so there is nothing to
+              measure the sales against. Enter what it cost on the breakdown to
+              see whether it paid.
             </p>
           ) : (
             <>
@@ -92,14 +108,20 @@ function CarcassCard({ entry }: { entry: CarcassLedgerEntry }) {
                 {entry.sold >= entry.costIn ? (
                   <>
                     Paid for itself and made{" "}
-                    <strong className="text-emerald-800">{formatCents(entry.realised)}</strong> so
-                    far, with {formatCents(entry.onHandValue)} of cuts still to sell.
+                    <strong className="text-emerald-800">
+                      {formatCents(entry.realised)}
+                    </strong>{" "}
+                    so far, with {formatCents(entry.onHandValue)} of cuts still
+                    to sell.
                   </>
                 ) : (
                   <>
-                    <strong className="text-char-900">{formatCents(stillOut)}</strong> of its cost
-                    is still out there - {formatCents(entry.onHandValue)} of it hanging in the
-                    case at board price.
+                    <strong className="text-char-900">
+                      {formatCents(stillOut)}
+                    </strong>{" "}
+                    of its cost is still out there -{" "}
+                    {formatCents(entry.onHandValue)} of it hanging in the case
+                    at board price.
                   </>
                 )}
               </p>
@@ -116,11 +138,21 @@ function CarcassCard({ entry }: { entry: CarcassLedgerEntry }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-char-200 text-left">
-                <th className="py-2 pr-3 text-xs font-medium text-char-500">Cut</th>
-                <th className="py-2 pr-3 text-xs font-medium text-char-500">Weight</th>
-                <th className="py-2 pr-3 text-xs font-medium text-char-500">Yield</th>
-                <th className="py-2 pr-3 text-right text-xs font-medium text-char-500">Cost/kg</th>
-                <th className="py-2 text-right text-xs font-medium text-char-500">Board/kg</th>
+                <th className="py-2 pr-3 text-xs font-medium text-char-500">
+                  Cut
+                </th>
+                <th className="py-2 pr-3 text-xs font-medium text-char-500">
+                  Weight
+                </th>
+                <th className="py-2 pr-3 text-xs font-medium text-char-500">
+                  Yield
+                </th>
+                <th className="py-2 pr-3 text-right text-xs font-medium text-char-500">
+                  Cost/kg
+                </th>
+                <th className="py-2 text-right text-xs font-medium text-char-500">
+                  Board/kg
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-char-100">
@@ -129,25 +161,32 @@ function CarcassCard({ entry }: { entry: CarcassLedgerEntry }) {
                 // for is one the breakdown loaded too heavily, or one the board
                 // has underpriced.
                 const underwater =
-                  output.costPerKg > 0 && output.costPerKg >= output.boardPricePerKg;
+                  output.costPerKg > 0 &&
+                  output.costPerKg >= output.boardPricePerKg;
                 return (
                   <tr key={output.sku}>
                     <td className="py-2 pr-3 text-char-900">
                       {output.name}
                       {output.isByProduct && (
-                        <span className="ml-2 text-xs text-char-500">by-product</span>
+                        <span className="ml-2 text-xs text-char-500">
+                          by-product
+                        </span>
                       )}
                     </td>
                     <td className="tabular py-2 pr-3 text-char-600">
                       {formatKg(output.weightGrams)} kg
                     </td>
-                    <td className="tabular py-2 pr-3 text-char-600">{output.yieldPercent}%</td>
+                    <td className="tabular py-2 pr-3 text-char-600">
+                      {output.yieldPercent}%
+                    </td>
                     <td className="tabular py-2 pr-3 text-right text-char-600">
                       {formatCents(output.costPerKg)}
                     </td>
                     <td
                       className={`tabular py-2 text-right ${
-                        underwater ? "font-semibold text-meat-700" : "text-char-900"
+                        underwater
+                          ? "font-semibold text-meat-700"
+                          : "text-char-900"
                       }`}
                     >
                       {formatCents(output.boardPricePerKg)}
@@ -214,7 +253,9 @@ function Line({
   tone?: "brass";
 }) {
   return (
-    <div className={`flex items-baseline justify-between gap-3 ${indent ? "pl-3" : ""}`}>
+    <div
+      className={`flex items-baseline justify-between gap-3 ${indent ? "pl-3" : ""}`}
+    >
       <dt className={muted ? "text-char-500" : "text-char-700"}>{label}</dt>
       <dd
         className={`tabular ${
