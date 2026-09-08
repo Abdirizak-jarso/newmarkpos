@@ -11,13 +11,13 @@ import { ROLES } from "./permissions";
 /** Money must arrive as integer cents. A float here means a bug upstream. */
 export const cents = z
   .number()
-  .int("Money must be whole cents — a decimal here means a float leaked in")
+  .int("Money must be whole cents - a decimal here means a float leaked in")
   .finite();
 
 export const positiveCents = cents.positive();
 export const nonNegativeCents = cents.nonnegative();
 
-/** Weight must arrive as integer grams — 3 dp of kilograms. */
+/** Weight must arrive as integer grams - 3 dp of kilograms. */
 export const grams = z.number().int("Weight must be whole grams").finite();
 export const positiveGrams = grams.positive();
 export const nonNegativeGrams = grams.nonnegative();
@@ -58,7 +58,7 @@ export const saleLineSchema = z
      * different rule: the server still reads the catalogue rate, still records
      * it against the line, still measures the gap, and still makes an admin
      * approve a gap that goes the shop's way. What the client cannot do is
-     * change a price SILENTLY — an override arrives explicitly, or not at all.
+     * change a price SILENTLY - an override arrives explicitly, or not at all.
      */
     unitPriceOverride: positiveCents.optional(),
     weightGrams: positiveGrams.optional(),
@@ -74,7 +74,7 @@ export const saleLineSchema = z
 
 /**
  * Safaricom confirmation codes are ten characters, letters and digits, e.g.
- * SJH4K2L9XZ. Kept a little loose either side of that — the format has changed
+ * SJH4K2L9XZ. Kept a little loose either side of that - the format has changed
  * before and a cashier holding a valid code must never be blocked by us.
  */
 export const mpesaCode = z
@@ -109,7 +109,7 @@ export const tenderSchema = z
     transactedAt: z.string().datetime().optional(),
   })
   .superRefine((tender, ctx) => {
-    // No code is fine — it is recorded later. A code that cannot be an M-Pesa
+    // No code is fine - it is recorded later. A code that cannot be an M-Pesa
     // code is not: it would file as reconciled against something that will
     // never appear on the statement. Other methods carry their own kinds of
     // reference (a card auth code), so this shape is checked for M-Pesa only.
@@ -294,7 +294,7 @@ export const breakdownSchema = z
   .refine(
     (b) => b.outputs.reduce((total, o) => total + o.weightGrams, 0) <= b.inputWeightGrams,
     {
-      message: "Outputs weigh more than the carcass came in at — check the scale",
+      message: "Outputs weigh more than the carcass came in at - check the scale",
       path: ["outputs"],
     },
   );
@@ -303,7 +303,7 @@ export const breakdownSchema = z
 // Staff and settings
 // ---------------------------------------------------------------------------
 
-/** Signing in is the PIN alone — it identifies the person and authorises them. */
+/** Signing in is the PIN alone - it identifies the person and authorises them. */
 export const loginSchema = z.object({
   pin: pinSchema,
 });
@@ -323,11 +323,16 @@ export const userSchema = z.object({
 });
 
 export const settingsSchema = z.object({
+  brandLines: z.array(z.string().trim().max(120)).max(4).optional(),
   shopName: z.string().trim().min(2).max(120).optional(),
   tagline: z.string().trim().max(120).optional(),
   addressLines: z.array(z.string().trim().max(120)).max(4).optional(),
-  phone: z.string().trim().max(40).optional(),
+  phoneNumbers: z.array(z.string().trim().max(40)).max(4).optional(),
   kraPin: z.string().trim().max(20).optional(),
+  // Allowed to be empty: clearing the paybill is how the shop takes it off the
+  // receipt, so this cannot be `.min(1)`.
+  mpesaPaybill: z.string().trim().max(20).optional(),
+  mpesaAccount: z.string().trim().max(40).optional(),
   receiptFooter: z.array(z.string().trim().max(120)).max(4).optional(),
   standardVatRatePercent: z.number().min(0).max(100).optional(),
   cashRoundingStep: nonNegativeCents.optional(),

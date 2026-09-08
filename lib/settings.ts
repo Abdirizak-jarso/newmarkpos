@@ -11,11 +11,20 @@ import type { ShopDetails } from "./adapters/escpos";
  */
 
 export interface ShopSettings extends PricingSettings {
+  /**
+   * The logo's own words, printed as the masthead on thermal paper where the
+   * artwork cannot go. Keep them saying what public/logo.png says.
+   */
+  brandLines: string[];
   shopName: string;
   tagline: string;
   addressLines: string[];
-  phone: string;
+  /** Every number the shop answers; the receipt joins them onto one Tel line. */
+  phoneNumbers: string[];
   kraPin: string;
+  /** Printed on the receipt so a customer can pay, or query a payment later. */
+  mpesaPaybill: string;
+  mpesaAccount: string;
   receiptFooter: string[];
   /** Line discounts above this, in cents, need a manager PIN. */
   discountApprovalThreshold: number;
@@ -26,11 +35,14 @@ export interface ShopSettings extends PricingSettings {
 }
 
 export const DEFAULT_SETTINGS: ShopSettings = {
+  brandLines: ["NEWMARK", "Where Quality Meets Tradition", "100% Halal Quality Meat"],
   shopName: "Newmark Butchery",
   tagline: "Premium Halal Meat",
   addressLines: ["Bishan Plaza, Westlands", "Nairobi, Kenya"],
-  phone: "",
+  phoneNumbers: ["0700 876 201", "0701 347 191"],
   kraPin: "",
+  mpesaPaybill: "",
+  mpesaAccount: "",
   receiptFooter: ["Thank you for shopping with us", "newmarkprimemeat.com"],
   // Fresh meat is largely exempt in Kenya; the standard rate here only applies
   // to products a manager has explicitly marked STANDARD.
@@ -63,28 +75,45 @@ export async function getSettings(): Promise<ShopSettings> {
   return settings;
 }
 
-export async function getPricingSettings(): Promise<PricingSettings> {
-  const settings = await getSettings();
+/*
+ * The two views of the settings a sale needs, derived rather than fetched.
+ *
+ * Checkout wants all three of these - the settings, the pricing rules and the
+ * shop's details for the receipt - and each `get` is a round trip to a
+ * database on another continent. Reading the same ten rows three times cost
+ * the counter the best part of a second per sale, so the derivations are pure
+ * and the caller fetches once.
+ */
+export function pricingSettingsFrom(settings: ShopSettings): PricingSettings {
   return {
     standardVatRatePercent: settings.standardVatRatePercent,
     cashRoundingStep: settings.cashRoundingStep,
   };
 }
 
-export async function getShopDetails(): Promise<ShopDetails> {
-  const settings = await getSettings();
+export function shopDetailsFrom(settings: ShopSettings): ShopDetails {
   return {
+    brandLines: settings.brandLines,
     name: settings.shopName,
-    tagline: settings.tagline,
     addressLines: settings.addressLines,
-    phone: settings.phone,
+    phoneNumbers: settings.phoneNumbers,
     kraPin: settings.kraPin,
+    mpesaPaybill: settings.mpesaPaybill,
+    mpesaAccount: settings.mpesaAccount,
     footerLines: settings.receiptFooter,
   };
 }
 
+export async function getPricingSettings(): Promise<PricingSettings> {
+  return pricingSettingsFrom(await getSettings());
+}
+
+export async function getShopDetails(): Promise<ShopDetails> {
+  return shopDetailsFrom(await getSettings());
+}
+
 /**
- * Settings changes are audited by the caller — this only writes the value.
+ * Settings changes are audited by the caller - this only writes the value.
  * It returns the previous value so the caller has a `before` to record.
  */
 export async function setSetting<K extends SettingKey>(

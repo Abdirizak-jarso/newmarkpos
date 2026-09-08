@@ -3,7 +3,7 @@
  *
  * The rule that shapes this whole file: a printer failure must never block or
  * roll back a sale. The sale is committed, the job is queued, the failure is
- * surfaced as a retry the cashier can press — and the queue keeps the next
+ * surfaced as a retry the cashier can press - and the queue keeps the next
  * customer moving in the meantime.
  *
  * Nothing here throws at the caller. `print()` resolves with a result the till
@@ -38,7 +38,7 @@ export interface ReceiptPrinter {
 /**
  * No printer attached. Used on the dev machine, on a terminal whose printer is
  * out of paper, and as the fallback when a configured printer cannot be
- * reached at startup. It reports success so the sale flow is never held up —
+ * reached at startup. It reports success so the sale flow is never held up -
  * the queue is what records that a receipt is still owed.
  */
 export class NoopPrinter implements ReceiptPrinter {
@@ -56,7 +56,7 @@ export class NoopPrinter implements ReceiptPrinter {
       connected: false,
       adapter: this.name,
       paperWidth: this.paperWidth,
-      detail: "No printer configured — receipts are shown on screen",
+      detail: "No printer configured - receipts are shown on screen",
     };
   }
 
@@ -71,9 +71,16 @@ export class NoopPrinter implements ReceiptPrinter {
 }
 
 /**
- * Ethernet/Wi-Fi thermal printer on raw port 9100 — the usual arrangement for
+ * Ethernet/Wi-Fi thermal printer on raw port 9100 - the usual arrangement for
  * an 80 mm counter printer.
  */
+/**
+ * How long to wait for a printer to close the connection after it has been
+ * sent everything. Plenty for a printer that answers a FIN; short enough that
+ * one which never closes does not hold the queue up.
+ */
+const LINGER_AFTER_FLUSH_MS = 250;
+
 export class NetworkPrinter implements ReceiptPrinter {
   readonly name = "network";
 
@@ -102,20 +109,50 @@ export class NetworkPrinter implements ReceiptPrinter {
     return this.send(new Uint8Array([0x1b, 0x70, 0x00, 0x19, 0xfa]));
   }
 
+  /**
+   * Write the whole job, then let the socket close on its own.
+   *
+   * This used to `write()` and then `destroy()` the moment the write callback
+   * fired. That callback means "handed to the kernel", not "delivered", and
+   * `destroy()` tears the connection down at once - abandoning anything still
+   * in the send buffer and sending an RST rather than a FIN. A raw-9100 print
+   * server is slow to drain, so the tail of a long receipt could be thrown
+   * away mid-line: the footer cut short, and the cut command with it.
+   *
+   * `end()` writes and then half-closes once the buffer has actually drained,
+   * so the printer gets every byte. The linger afterwards is for the printers
+   * that never close the connection themselves: the bytes have left this
+   * machine by then, and reporting a failure would re-queue a receipt that has
+   * already come out of the printer.
+   */
   private async send(payload: Uint8Array): Promise<PrintResult> {
     const at = new Date();
     try {
       const net = await import("node:net");
       return await new Promise<PrintResult>((resolve) => {
         const socket = new net.Socket();
+        let settled = false;
+        let linger: NodeJS.Timeout | undefined;
+
         const finish = (error?: string) => {
+          if (settled) return;
+          settled = true;
+          if (linger) clearTimeout(linger);
           socket.destroy();
           resolve({ ok: error === undefined, adapter: this.name, error, at });
         };
+
         socket.setTimeout(this.timeoutMs, () => finish(`No response from ${this.host}:${this.port}`));
         socket.once("error", (err: Error) => finish(err.message));
+        socket.once("close", () => finish());
         socket.connect(this.port, this.host, () => {
-          socket.write(Buffer.from(payload), () => finish());
+          socket.end(Buffer.from(payload), () => {
+            // Drained and half-closed. The idle timeout was watching for a
+            // printer that never answered; it has now, so stop it counting
+            // against a printer that simply holds the connection open.
+            socket.setTimeout(0);
+            linger = setTimeout(() => finish(), LINGER_AFTER_FLUSH_MS);
+          });
         });
       });
     } catch (error) {
