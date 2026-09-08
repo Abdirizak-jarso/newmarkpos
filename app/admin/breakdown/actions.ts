@@ -16,7 +16,7 @@ export interface BreakdownState {
 /**
  * Post a carcass breakdown.
  *
- * The outputs arrive as repeated form fields — a row per cut off the block.
+ * The outputs arrive as repeated form fields - a row per cut off the block.
  * Rows with no weight are dropped rather than rejected: the operator works
  * down a list of possible cuts and leaves the ones this carcass did not yield.
  */

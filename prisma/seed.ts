@@ -8,13 +8,13 @@ import { hashPin } from "../lib/auth";
 /**
  * Seed.
  *
- * The catalogue mirrors the live shop at newmarkprimemeat.com — the prices in
+ * The catalogue mirrors the live shop at newmarkprimemeat.com - the prices in
  * products.json are the real ones. Do not change a price here without saying
  * so: the seed is what a fresh till is checked against.
  */
 
 const url = process.env.DATABASE_URL;
-if (!url) throw new Error("DATABASE_URL is not set — point it at the database to seed.");
+if (!url) throw new Error("DATABASE_URL is not set - point it at the database to seed.");
 const db = new PrismaClient({ adapter: new PrismaNeon({ connectionString: url }) });
 
 interface LiveProduct {
@@ -65,7 +65,7 @@ const BREAKDOWN_SOURCES = new Set([
  * VAT treatment.
  *
  * Unprocessed meat is treated as exempt here as a starting position. This is
- * NOT a settled answer — per-category treatment is the owner's accountant's
+ * NOT a settled answer - per-category treatment is the owner's accountant's
  * call and is listed as an open decision in CLAUDE.md. Change it in the admin
  * catalogue, per product, not by editing a constant.
  */
@@ -145,7 +145,7 @@ async function main() {
 
   // --- Staff ---------------------------------------------------------------
   // Demo PINs. Each one is unique, because the PIN is the only thing typed at
-  // the till — it identifies the person as well as authorising them.
+  // the till - it identifies the person as well as authorising them.
   // Change them before the till goes on the counter; Admin → Staff is the
   // place to do it.
   const staff: { name: string; staffCode: string; role: string; pin: string }[] = [

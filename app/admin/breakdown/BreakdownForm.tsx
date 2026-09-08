@@ -11,7 +11,7 @@ import { formatCents } from "@/lib/money";
  * The running total at the bottom is the point of this screen: as the butcher
  * enters each cut, the loss figure moves. A breakdown that comes out at zero
  * loss means somebody estimated a weight instead of weighing it, and one at
- * 40% means the scale is wrong — both are worth seeing before posting, which
+ * 40% means the scale is wrong - both are worth seeing before posting, which
  * is why the numbers update live rather than after submission.
  */
 
@@ -104,7 +104,7 @@ export function BreakdownForm({
             <option value="">Choose…</option>
             {sources.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name} — {formatKg(s.stockGrams)} kg on hand
+                {s.name} - {formatKg(s.stockGrams)} kg on hand
               </option>
             ))}
           </select>
@@ -225,7 +225,7 @@ export function BreakdownForm({
 
       {overweight && (
         <p className="border-t border-meat-200 bg-meat-50 px-4 py-2 text-sm text-meat-800">
-          The cuts weigh more than the carcass came in at. Check the scale before posting — meat
+          The cuts weigh more than the carcass came in at. Check the scale before posting - meat
           cannot be created by cutting it up.
         </p>
       )}

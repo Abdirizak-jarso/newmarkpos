@@ -7,7 +7,7 @@ import {
 } from "@/lib/breakdown";
 import { sumCents } from "@/lib/money";
 
-/** A 180 kg beef carcass at KSh 750/kg — the shape of a real Newmark intake. */
+/** A 180 kg beef carcass at KSh 750/kg - the shape of a real Newmark intake. */
 function carcass(over: Partial<BreakdownInput> = {}): BreakdownInput {
   return {
     sourceProductId: "p-carcass",

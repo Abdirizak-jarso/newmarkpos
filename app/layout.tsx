@@ -7,7 +7,7 @@ import "./globals.css";
  *
  * Chosen because it comes out of signage and industrial lettering, which is
  * what the till is: a figure read across a counter, at an angle, by someone
- * whose hands are full. The width axis does real work here — the readouts are
+ * whose hands are full. The width axis does real work here - the readouts are
  * set wide the way a weighing machine sets its digits, so the total and the
  * body text are one family rather than two.
  *

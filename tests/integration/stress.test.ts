@@ -101,7 +101,7 @@ describe("at the edges of what a cashier can type", () => {
       cashier,
     );
 
-    // Rounded once per line and then summed — never rounded again at the end.
+    // Rounded once per line and then summed - never rounded again at the end.
     expect(sale.total).toBe(expected);
     const saved = await db.saleLine.findMany({ where: { saleId: sale.saleId } });
     expect(saved).toHaveLength(60);
@@ -109,7 +109,7 @@ describe("at the edges of what a cashier can type", () => {
   });
 
   it("clamps a discount to the line rather than turning a sale into a payout", async () => {
-    // One cut given away alongside one paid for — the realistic shape, and the
+    // One cut given away alongside one paid for - the realistic shape, and the
     // only one that can be banked, since a sale worth nothing has no payment.
     const product = await db.product.findUniqueOrThrow({ where: { id: cutId } });
     const paidGross = Math.round((product.price * 1_000) / 1000);
@@ -149,7 +149,7 @@ describe("at the edges of what a cashier can type", () => {
      * rather than an oversight: every tender must be a positive amount, and an
      * M-Pesa payment above the total is refused because no change can be given
      * on it. Meat leaving the shop for free is a write-off with a reason code,
-     * not a sale of nothing — the stock service is where that belongs.
+     * not a sale of nothing - the stock service is where that belongs.
      */
     const product = await db.product.findUniqueOrThrow({ where: { id: cutId } });
     const gross = Math.round((product.price * 1_000) / 1000);

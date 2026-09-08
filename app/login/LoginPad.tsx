@@ -8,7 +8,7 @@ import { PIN_MAX_LENGTH, PIN_MIN_LENGTH } from "@/lib/pin";
 /**
  * The sign-in pad.
  *
- * One field. The cashier taps their PIN and the till knows who they are —
+ * One field. The cashier taps their PIN and the till knows who they are -
  * no staff code, no name to pick off a list. It is the fastest thing that can
  * happen at a counter, and it is why the PIN has to be unique per person.
  *
@@ -42,7 +42,7 @@ export function LoginPad({ terminalId }: { terminalId: string }) {
 
       {/*
         The readout. Masked, because there is a queue behind the cashier who
-        can see this screen — but lit, so they can count their own digits.
+        can see this screen - but lit, so they can count their own digits.
       */}
       <div className="sheet lit flex h-16 items-center justify-between px-4">
         <span className="flex items-center gap-2.5" aria-live="polite">

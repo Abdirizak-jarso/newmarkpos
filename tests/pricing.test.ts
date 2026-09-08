@@ -24,7 +24,7 @@ function kgLine(over: Partial<CartLineInput> = {}): CartLineInput {
   };
 }
 
-describe("priceSale — pricing modes", () => {
+describe("priceSale - pricing modes", () => {
   it("prices a per-kg line from weight", () => {
     const sale = priceSale([kgLine()], settings);
     expect(sale.lines[0]!.gross).toBe(1_012_70); // 820.00 x 1.235
@@ -81,7 +81,7 @@ describe("priceSale — pricing modes", () => {
   });
 });
 
-describe("priceSale — a real counter basket", () => {
+describe("priceSale - a real counter basket", () => {
   const basket: CartLineInput[] = [
     kgLine({ lineId: "a", weightGrams: 1235 }), // 1,012.70
     kgLine({
@@ -113,7 +113,7 @@ describe("priceSale — a real counter basket", () => {
   });
 });
 
-describe("priceSale — discounts", () => {
+describe("priceSale - discounts", () => {
   it("takes a percentage off one line", () => {
     const sale = priceSale([kgLine({ discount: { kind: "PERCENT", value: 10 } })], settings);
     expect(sale.lines[0]!.discount).toBe(101_27); // 10% of 1,012.70
@@ -139,7 +139,7 @@ describe("priceSale — discounts", () => {
   });
 });
 
-describe("priceSale — VAT", () => {
+describe("priceSale - VAT", () => {
   it("never applies one rate across the catalogue", () => {
     const sale = priceSale(
       [
@@ -179,7 +179,7 @@ describe("priceSale — VAT", () => {
   });
 });
 
-describe("priceSale — cash rounding", () => {
+describe("priceSale - cash rounding", () => {
   it("shows the adjustment as its own figure", () => {
     const sale = priceSale([kgLine({ unitPrice: 820_00, weightGrams: 1235 })], {
       ...settings,

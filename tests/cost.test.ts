@@ -5,7 +5,7 @@ import { blendCost, costOfWeight, margin, totalMargin } from "@/lib/cost";
  * What the meat cost, and what the shop made on it.
  *
  * These are the sums that decide whether a carcass was worth buying. Getting
- * them wrong does not crash anything — it quietly reports a margin the shop
+ * them wrong does not crash anything - it quietly reports a margin the shop
  * never made, which is worse, because somebody will price against it.
  */
 

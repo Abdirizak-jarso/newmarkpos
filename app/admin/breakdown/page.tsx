@@ -35,7 +35,7 @@ export default async function BreakdownPage() {
     <>
       <PageHeader
         title="Carcass breakdown"
-        description="Break a bulk intake down into cuts. Yields never sum to the input weight — the difference is recorded as loss, not discarded."
+        description="Break a bulk intake down into cuts. Yields never sum to the input weight - the difference is recorded as loss, not discarded."
       />
 
       <div className="space-y-6 p-8">

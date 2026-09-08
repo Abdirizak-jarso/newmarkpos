@@ -129,7 +129,7 @@ export async function refundSale(
       ? returningGrams / Math.max(1, line.weightGrams)
       : returningQty / Math.max(1, line.quantity);
 
-    // The one rounding rule, same as the sale this reverses — so a full
+    // The one rounding rule, same as the sale this reverses - so a full
     // refund cancels the original to the cent rather than to within one.
     const net = roundHalfUp(line.net * share);
     const stockGrams = roundHalfUp(line.stockGrams * share);
@@ -169,7 +169,7 @@ export async function refundSale(
             sku: r.line.sku,
             name: r.line.name,
             pricingMode: r.line.pricingMode,
-            // Whatever was charged, at whatever rate — a refund is not a fresh
+            // Whatever was charged, at whatever rate - a refund is not a fresh
             // pricing decision, so the original's rates come across unchanged.
             unitPrice: r.line.unitPrice,
             catalogueUnitPrice: r.line.catalogueUnitPrice,
@@ -386,7 +386,7 @@ export function totalsFromSaleLines(lines: CartLine[]): SaleTotals {
   };
 }
 
-/** Queue a duplicate receipt. Reprints are audited — they enable walk-outs. */
+/** Queue a duplicate receipt. Reprints are audited - they enable walk-outs. */
 export async function reprintReceipt(saleId: string, actor: CurrentUser): Promise<string> {
   const sale = await db.sale.findUnique({
     where: { id: saleId },
@@ -438,7 +438,7 @@ export async function reprintReceipt(saleId: string, actor: CurrentUser): Promis
  *
  * This is the shop's exposure: every row is money that has left the customer's
  * phone and gone into a sale, with nothing on file yet to match it against the
- * Safaricom statement. It is deliberately ordered oldest first — the ones that
+ * Safaricom statement. It is deliberately ordered oldest first - the ones that
  * have been sitting longest are the ones most likely to be forgotten.
  */
 export async function listUnconfirmedMpesa(limit = 50): Promise<UnconfirmedPayment[]> {
@@ -486,7 +486,7 @@ export async function countUnconfirmedMpesa(): Promise<number> {
  * customer's confirmation message arrived. It writes the code and the time off
  * that message and moves the payment to CONFIRMED.
  *
- * It does NOT touch the sale, its lines, its total or its stock — none of that
+ * It does NOT touch the sale, its lines, its total or its stock - none of that
  * is in question. The only thing that changes is whether the shop can prove the
  * money came in, which is why the whole operation is one field, one status and
  * an audit row naming who cleared it.
@@ -549,7 +549,7 @@ export async function recordMpesaCode(
       status: "CONFIRMED",
       transactedAt: input.transactedAt,
       // Carried on the row so the audit log reads without a join back to the
-      // sale — the log is the record of last resort.
+      // sale - the log is the record of last resort.
       receiptNumber: payment.sale.receiptNumber,
     },
     actorId: actor.id,

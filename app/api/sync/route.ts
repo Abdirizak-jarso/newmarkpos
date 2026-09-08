@@ -11,8 +11,8 @@ import { terminalId } from "@/lib/receipt-number";
  * originals. A failure leaves the queue exactly as it was and the shop
  * unaffected.
  *
- * With no SYNC_ENDPOINT configured — a single-till shop, which is where
- * Newmark starts — this reports the queue depth and does nothing else.
+ * With no SYNC_ENDPOINT configured - a single-till shop, which is where
+ * Newmark starts - this reports the queue depth and does nothing else.
  */
 
 const MAX_ATTEMPTS = 20;
@@ -29,7 +29,7 @@ export async function POST() {
       return NextResponse.json({
         sent: 0,
         pending,
-        detail: "No central server configured — this till keeps its own records.",
+        detail: "No central server configured - this till keeps its own records.",
       });
     }
 

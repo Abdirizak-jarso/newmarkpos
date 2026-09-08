@@ -53,7 +53,7 @@ export function centsToShillings(cents: Cents): number {
   return cents / CENTS_PER_SHILLING;
 }
 
-/** "1,250.50" — for the till display, receipts and reports. */
+/** "1,250.50" - for the till display, receipts and reports. */
 export function formatCents(cents: Cents, opts: { symbol?: boolean } = {}): string {
   assertCents(cents);
   const negative = cents < 0;

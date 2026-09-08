@@ -3,8 +3,8 @@ import path from "node:path";
 
 /**
  * Integration tests run against a real Postgres database seeded from the live
- * catalogue, so they exercise the actual service layer — transactions, stock
- * movements, manager approval and the audit trail — rather than mocks.
+ * catalogue, so they exercise the actual service layer - transactions, stock
+ * movements, manager approval and the audit trail - rather than mocks.
  *
  * TEST_DATABASE_URL must point at a scratch database, never the shop's: the
  * setup step resets it before every run. A Neon branch is the cheap way to get

@@ -190,7 +190,7 @@ export function SaleActions({
               M-Pesa code for {receiptNumber}
             </h2>
             <p className="mt-1 text-sm text-char-500">
-              From the customer&rsquo;s confirmation message. This does not change the sale — it
+              From the customer&rsquo;s confirmation message. This does not change the sale - it
               records the proof that {formatCents(total, { symbol: true })} arrived.
             </p>
 

@@ -37,7 +37,7 @@ export async function saveStaff(_prev: StaffState, formData: FormData): Promise<
       return { error: "That PIN is too easy to guess. Choose another." };
     }
     if (!id && !pin) {
-      return { error: "A new staff member needs a PIN — it is how they sign in" };
+      return { error: "A new staff member needs a PIN - it is how they sign in" };
     }
 
     // The PIN is the only thing typed at the till, so it has to point at one
@@ -51,7 +51,7 @@ export async function saveStaff(_prev: StaffState, formData: FormData): Promise<
       const before = await db.user.findUnique({ where: { id } });
       if (!before) return { error: "Staff member not found" };
 
-      // Never let the last admin demote themselves out of the back office —
+      // Never let the last admin demote themselves out of the back office -
       // there would be nobody left who could put it right.
       if (before.role === "ADMIN" && role !== "ADMIN") {
         const admins = await db.user.count({ where: { role: "ADMIN", active: true } });
@@ -82,7 +82,7 @@ export async function saveStaff(_prev: StaffState, formData: FormData): Promise<
         });
       }
       if (pin) {
-        // The PIN itself is never written to the log — only that it changed.
+        // The PIN itself is never written to the log - only that it changed.
         await record({
           action: "PIN_CHANGED",
           entity: "User",
@@ -136,7 +136,7 @@ export async function saveStaff(_prev: StaffState, formData: FormData): Promise<
   }
 }
 
-/** Staff are deactivated, never deleted — their sales must keep their author. */
+/** Staff are deactivated, never deleted - their sales must keep their author. */
 export async function deactivateStaff(userId: string): Promise<StaffState> {
   try {
     const actor = await requirePermission("staff.manage");

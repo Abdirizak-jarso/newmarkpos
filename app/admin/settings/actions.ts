@@ -27,11 +27,17 @@ export async function saveSettings(
         .filter(Boolean);
 
     const parsed = settingsSchema.safeParse({
+      brandLines: lines(formData.get("brandLines")),
       shopName: formData.get("shopName") || undefined,
       tagline: formData.get("tagline") || undefined,
       addressLines: lines(formData.get("addressLines")),
-      phone: formData.get("phone") || undefined,
+      phoneNumbers: lines(formData.get("phoneNumbers")),
       kraPin: formData.get("kraPin") || undefined,
+      // Not `|| undefined` like the fields above: an empty box here means the
+      // shop wants the paybill off the receipt, and undefined would silently
+      // leave the old number printing.
+      mpesaPaybill: String(formData.get("mpesaPaybill") ?? "").trim(),
+      mpesaAccount: String(formData.get("mpesaAccount") ?? "").trim(),
       receiptFooter: lines(formData.get("receiptFooter")),
       standardVatRatePercent: Number(formData.get("standardVatRatePercent")),
       cashRoundingStep: formData.get("cashRoundingStep")

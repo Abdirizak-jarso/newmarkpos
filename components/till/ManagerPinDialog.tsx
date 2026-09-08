@@ -10,7 +10,7 @@ import type { ManagerApproval } from "@/app/till/types";
  * Manager approval at the till.
  *
  * The manager walks over and taps their own PIN; the cashier keeps the
- * session. Nothing is verified here — the PIN goes with the request and the
+ * session. Nothing is verified here - the PIN goes with the request and the
  * SERVER identifies who it belongs to and whether they may authorise this, so
  * skipping this dialog gets you a rejected request, not an approved discount.
  */

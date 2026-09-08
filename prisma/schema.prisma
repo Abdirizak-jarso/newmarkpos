@@ -1,4 +1,4 @@
-// Newmark POS — data model
+// Newmark POS - data model
 //
 // Money is stored as Int cents. Weight is stored as Int grams (3 dp).
 // There are no Float/Decimal columns for money or weight anywhere in this
@@ -10,13 +10,13 @@
 //
 // What it costs: a terminal can no longer trade with the network down, because
 // the database is no longer on the terminal. The counter this runs at has
-// internet, so that trade is made deliberately — but the SyncQueue and the
+// internet, so that trade is made deliberately - but the SyncQueue and the
 // client-side outbox in lib/offline.ts still exist and still matter, because
 // "the shop's internet is up" and "this request will succeed" are not the same
 // claim. A dropped connection mid-service must still not lose a sale.
 //
 // The SQLite migration history this schema grew from is kept in
-// prisma/migrations-sqlite/ — it cannot run on Postgres (PRAGMA, table
+// prisma/migrations-sqlite/ - it cannot run on Postgres (PRAGMA, table
 // rebuilds), but it is the record of how these tables got their shape.
 
 generator client {
@@ -55,7 +55,7 @@ model Product {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
-  /// PER_KG | PER_PIECE | FIXED_PACK — see lib/pricing.ts
+  /// PER_KG | PER_PIECE | FIXED_PACK - see lib/pricing.ts
   pricingMode String @default("PER_KG")
 
   /// Cents per kg (PER_KG), per piece (PER_PIECE) or per pack (FIXED_PACK).
@@ -119,12 +119,12 @@ model User {
   pinSalt String
 
   /// Keyed HMAC of the PIN, so a PIN can find its owner without scrypt-testing
-  /// every member of staff — and so the database can enforce that no two people
+  /// every member of staff - and so the database can enforce that no two people
   /// share one. Useless without PIN_PEPPER, which never goes in the database.
   /// Nullable only so a row can exist mid-migration; always set in practice.
   pinLookup String? @unique
 
-  /// CASHIER | ADMIN — see lib/permissions.ts
+  /// CASHIER | ADMIN - see lib/permissions.ts
   role String @default("CASHIER")
 
   active   Boolean   @default(true)
@@ -222,7 +222,7 @@ model SaleLine {
   name        String
   pricingMode String
   /// The rate actually charged, in cents per kg / piece / pack. When the
-  /// cashier typed a rate at the counter this is that rate, not the board's —
+  /// cashier typed a rate at the counter this is that rate, not the board's -
   /// so a receipt, a refund and a margin report all read what was paid.
   unitPrice   Int
 
@@ -279,12 +279,12 @@ model Payment {
   reference String?
 
   /// When the customer's M-Pesa payment actually went through, as shown on
-  /// their confirmation message. Deliberately separate from createdAt — the
+  /// their confirmation message. Deliberately separate from createdAt - the
   /// cashier may key it in a minute or two later, and the reconciliation has
   /// to match Safaricom's clock, not the till's.
   transactedAt DateTime?
 
-  /// PENDING | CONFIRMED | FAILED — an M-Pesa STK push is not instant.
+  /// PENDING | CONFIRMED | FAILED - an M-Pesa STK push is not instant.
   status String @default("CONFIRMED")
 
   createdAt DateTime @default(now())

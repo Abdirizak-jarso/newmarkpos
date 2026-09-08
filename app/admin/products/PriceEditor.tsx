@@ -8,7 +8,7 @@ import { centsToShillings, formatCents } from "@/lib/money";
  * Inline price change with the manager PIN attached.
  *
  * The price is typed in shillings because that is how the shop thinks about
- * it, and converted to cents at the boundary — the number that leaves this
+ * it, and converted to cents at the boundary - the number that leaves this
  * component is always integer cents.
  */
 export function PriceEditor({

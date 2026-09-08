@@ -7,7 +7,7 @@ import { requirePermission, AuthorisationError } from "@/lib/session";
  * Drain the print queue.
  *
  * Called after a sale, from the "retry print" button, and on a timer. Always
- * returns 200 with a report — a printer that is switched off is information
+ * returns 200 with a report - a printer that is switched off is information
  * for the cashier, not an error condition for the application.
  */
 export async function POST() {
@@ -46,7 +46,7 @@ export async function POST() {
     // The caller needs to know WHICH kind of "printed" this was. NoopPrinter
     // reports success so the queue drains instead of backing up forever, but
     // telling the cashier "printed" when no printer exists is a lie they will
-    // act on — they will hand a customer a receipt that never came out.
+    // act on - they will hand a customer a receipt that never came out.
     return NextResponse.json({
       ...result,
       pending,

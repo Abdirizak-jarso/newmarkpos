@@ -2,11 +2,11 @@ import { roundHalfUp, type Cents } from "./money";
 import type { Grams } from "./weight";
 
 /**
- * What the meat cost — the pure half.
+ * What the meat cost - the pure half.
  *
  * A butchery's margin is not knowable from its price list. A leg of goat costs
  * what the carcass cost, divided across the cuts by weight, with the trim loss
- * loaded onto whatever survived — which is why shrinkage makes every recovered
+ * loaded onto whatever survived - which is why shrinkage makes every recovered
  * cut dearer instead of vanishing. `lib/breakdown.ts` does that allocation; this
  * file is what keeps the answer once the cuts go into the case and get sold.
  *
@@ -26,7 +26,7 @@ import type { Grams } from "./weight";
 /**
  * The new average cost per kg after `incomingGrams` arrives at `incomingCostPerKg`.
  *
- * Stock at or below zero has no cost basis to blend against — the shop has sold
+ * Stock at or below zero has no cost basis to blend against - the shop has sold
  * meat it had not booked in, and the honest answer is that the arriving cost is
  * now the cost. Averaging against a negative balance produces nonsense, and it
  * produces it silently.
@@ -62,7 +62,7 @@ export interface Margin {
 }
 
 /**
- * Margin on revenue, not on cost — it is the figure a shopkeeper quotes and the
+ * Margin on revenue, not on cost - it is the figure a shopkeeper quotes and the
  * one that compares across products.
  *
  * Revenue of zero has no margin to report rather than an infinite one; a line

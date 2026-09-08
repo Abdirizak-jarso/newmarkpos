@@ -16,7 +16,7 @@ import type {
  * Stock movements.
  *
  * Every function here writes a StockMovement with a reason code and an actor.
- * Nothing in this application changes `Product.stockGrams` without one — if
+ * Nothing in this application changes `Product.stockGrams` without one - if
  * you find yourself writing a bare `product.update({ stockGrams })`, you are
  * about to make the stock history unreconstructable.
  */
@@ -46,7 +46,7 @@ export async function move(
    * so a sale, a waste write-off or a downward correction carries no cost at
    * all. What arrives does: twenty kilos held at 600/kg and two arriving at
    * 900/kg is a 627/kg product, not a 900/kg one. Overwriting on each delivery
-   * — which is what this used to do — made the margin lurch with the last
+   * - which is what this used to do - made the margin lurch with the last
    * invoice and reported a figure that was never true of the stock on hand.
    */
   const costPerKg =
@@ -66,7 +66,7 @@ export async function move(
       balanceGrams: balance,
       reason: args.reason,
       note: args.note,
-      // What this delivery cost per kg — not the blended average — so the
+      // What this delivery cost per kg - not the blended average - so the
       // ledger can be rebuilt from the movements alone.
       costPerKg: args.costPerKg,
       actorId: args.actorId,
@@ -88,7 +88,7 @@ export async function receiveStock(
       deltaGrams: input.weightGrams,
       reason: "INTAKE",
       actorId: actor.id,
-      note: [input.supplier, input.note].filter(Boolean).join(" — ") || undefined,
+      note: [input.supplier, input.note].filter(Boolean).join(" - ") || undefined,
       costPerKg: input.costPerKg,
     }),
   );
@@ -143,7 +143,7 @@ export async function adjustStock(
 
 /**
  * A stocktake. The counted figure becomes the truth and the difference is
- * recorded as its own movement — the variance is the number worth looking at,
+ * recorded as its own movement - the variance is the number worth looking at,
  * so it must never be quietly overwritten.
  */
 export async function countStock(
@@ -272,7 +272,7 @@ export async function recordBreakdown(
         deltaGrams: output.weightGrams,
         reason: "BREAKDOWN_OUT",
         actorId: actor.id,
-        note: `From ${source.sku} — ${output.yieldPercent}% yield`,
+        note: `From ${source.sku} - ${output.yieldPercent}% yield`,
         costPerKg: output.costPerKg,
         breakdownId: created.id,
       });

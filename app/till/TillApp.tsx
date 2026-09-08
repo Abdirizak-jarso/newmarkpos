@@ -190,7 +190,7 @@ export function TillApp({
   /**
    * Is this discount the cashier's to make, or an admin's?
    *
-   * Discounts only — a rate typed on the entry pad goes through unasked. The
+   * Discounts only - a rate typed on the entry pad goes through unasked. The
    * rule itself is the server's, imported rather than restated here, because
    * two copies of it would eventually disagree and the one that disagreed
    * would be the one letting money out of the shop. The server asks it again
@@ -215,7 +215,7 @@ export function TillApp({
       try {
         charged = lineGross(input);
       } catch {
-        // Half-entered line — there is nothing to discount yet.
+        // Half-entered line - there is nothing to discount yet.
         return;
       }
 
@@ -271,28 +271,11 @@ export function TillApp({
         offlineAt: new Date().toISOString(),
       };
 
-      try {
-        const response = await fetch("/api/sales", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(body),
-        });
-
-        if (!response.ok) {
-          const detail = await response.json().catch(() => ({ error: "Checkout failed" }));
-          // A 4xx is the server's judgement — a bad discount, a product pulled
-          // from sale. Show it; do not queue it and pretend the sale went
-          // through, because the customer is still standing there.
-          setError(detail.error ?? "Checkout failed");
-          setBusy(false);
-          return;
-        }
-
-        const completed = (await response.json()) as CheckoutResponse;
-        setResult(completed);
-        setScreen("DONE");
-      } catch {
-        // No network. Bank it locally, give the customer their receipt, move on.
+      // Bank it here and let the customer go. Safe to replay: the idempotency
+      // key is the sale's primary key and `checkout` returns the sale it
+      // already has rather than banking a second one, so a sale that did
+      // commit before the response failed cannot be double-counted.
+      const bankOffline = async () => {
         await queueSale(idempotencyKey, body);
         setQueued(await outboxCount());
         setResult({
@@ -305,6 +288,41 @@ export function TillApp({
           queuedOffline: true,
         });
         setScreen("DONE");
+      };
+
+      try {
+        const response = await fetch("/api/sales", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        // A 5xx is the server having a bad time - a transaction that could not
+        // get started against a database on the other side of an ocean, most
+        // often. Nothing is wrong with the sale, so it goes to the outbox and
+        // is retried, exactly as a dropped connection would be. Refusing it
+        // would hand the customer back their meat over a timeout.
+        if (response.status >= 500) {
+          await bankOffline();
+          return;
+        }
+
+        if (!response.ok) {
+          const detail = await response.json().catch(() => ({ error: "Checkout failed" }));
+          // A 4xx is the server's judgement - a bad discount, a product pulled
+          // from sale. Show it; do not queue it and pretend the sale went
+          // through, because the customer is still standing there.
+          setError(detail.error ?? "Checkout failed");
+          setBusy(false);
+          return;
+        }
+
+        const completed = (await response.json()) as CheckoutResponse;
+        setResult(completed);
+        setScreen("DONE");
+      } catch {
+        // No network. Bank it locally, give the customer their receipt, move on.
+        await bankOffline();
       } finally {
         setBusy(false);
         setPendingApproval(null);

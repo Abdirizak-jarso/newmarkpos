@@ -19,6 +19,16 @@ export function SettingsForm({ settings }: { settings: ShopSettings }) {
           Shop details
         </h2>
         <div className="grid gap-4 p-4 md:grid-cols-2">
+          <Field
+            label="Receipt masthead (one line per row)"
+            hint="What the logo says, for thermal paper, which cannot print the artwork. The on-screen receipt shows the logo itself."
+          >
+            <textarea
+              name="brandLines"
+              defaultValue={settings.brandLines.join("\n")}
+              className={area}
+            />
+          </Field>
           <Field label="Shop name">
             <input name="shopName" defaultValue={settings.shopName} className={input} />
           </Field>
@@ -39,11 +49,36 @@ export function SettingsForm({ settings }: { settings: ShopSettings }) {
               className={area}
             />
           </Field>
-          <Field label="Phone">
-            <input name="phone" defaultValue={settings.phone} className={input} />
+          <Field
+            label="Phone numbers (one per row)"
+            hint="Joined with / onto the receipt's Tel line, and wrapped if they no longer fit."
+          >
+            <textarea
+              name="phoneNumbers"
+              defaultValue={settings.phoneNumbers.join("\n")}
+              className={area}
+            />
           </Field>
           <Field label="KRA PIN">
             <input name="kraPin" defaultValue={settings.kraPin} className={`uppercase ${input}`} />
+          </Field>
+          <Field
+            label="M-Pesa paybill"
+            hint="Printed on every receipt paid by M-Pesa. Leave blank to keep it off the paper."
+          >
+            <input
+              name="mpesaPaybill"
+              inputMode="numeric"
+              defaultValue={settings.mpesaPaybill}
+              className={`tabular ${input}`}
+            />
+          </Field>
+          <Field label="M-Pesa account number">
+            <input
+              name="mpesaAccount"
+              defaultValue={settings.mpesaAccount}
+              className={`tabular ${input}`}
+            />
           </Field>
         </div>
       </section>

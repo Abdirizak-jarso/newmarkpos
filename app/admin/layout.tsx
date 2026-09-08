@@ -6,7 +6,7 @@ import { can, isBackOffice, ROLE_LABELS, type Permission } from "@/lib/permissio
 /**
  * Back office shell.
  *
- * Light, dense and read sitting down — the opposite of the till. Nav items are
+ * Light, dense and read sitting down - the opposite of the till. Nav items are
  * filtered by permission, but that is only tidiness: every page behind them
  * checks the same permission again on the server.
  */
@@ -27,8 +27,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  // The back office is the admin's. A cashier who follows a link here — or
-  // types the URL — goes back to the till. Gated on the ROLE rather than on a
+  // The back office is the admin's. A cashier who follows a link here - or
+  // types the URL - goes back to the till. Gated on the ROLE rather than on a
   // permission a cashier happens to share (they can see stock levels on the
   // till), so every page under /admin is covered by this one check.
   if (!isBackOffice(user.role)) redirect("/till");

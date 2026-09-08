@@ -1,6 +1,6 @@
 /**
  * The pricing engine. One place computes a sale, and the till, the receipt,
- * the API and every report all call it — so what the customer is charged, what
+ * the API and every report all call it - so what the customer is charged, what
  * the receipt prints and what the Z-report totals can never disagree.
  *
  * Pure functions only: no database, no clock, no I/O. That is what makes the
@@ -25,9 +25,9 @@ import { assertGrams, weightLineTotal, type Grams } from "./weight";
 
 /**
  * All three modes must be handled everywhere a line item is processed.
- * PER_KG      — priced by weight, the default for the counter.
- * PER_PIECE   — a whole chicken, an egg tray: sold by count, still stocked in kg.
- * FIXED_PACK  — a pre-made pack (the 1.5 kg Prime Combo): fixed price, fixed weight.
+ * PER_KG      - priced by weight, the default for the counter.
+ * PER_PIECE   - a whole chicken, an egg tray: sold by count, still stocked in kg.
+ * FIXED_PACK  - a pre-made pack (the 1.5 kg Prime Combo): fixed price, fixed weight.
  */
 export type PricingMode = "PER_KG" | "PER_PIECE" | "FIXED_PACK";
 
@@ -48,7 +48,7 @@ export interface Discount {
 }
 
 export interface CartLineInput {
-  /** Stable key for the line within the sale — not the product id, lines repeat. */
+  /** Stable key for the line within the sale - not the product id, lines repeat. */
   lineId: string;
   productId: string;
   sku: string;
@@ -64,14 +64,14 @@ export interface CartLineInput {
    *
    * The till shows no prices on the product grid: the cashier types the rate
    * and the weight for every line. When this is set it REPLACES the catalogue
-   * rate for the arithmetic — it is not a discount, and it may be above the
+   * rate for the arithmetic - it is not a discount, and it may be above the
    * catalogue figure as well as below.
    *
    * The catalogue rate is still carried through pricing, because it is what
    * makes a typed rate auditable after the fact: `priceOverride` on the
    * resulting line is the gap between the two, and it is what the audit log
-   * and every margin report read. Nothing about a typed rate is blocked — the
-   * counter prices its own meat — but nothing about it is invisible either.
+   * and every margin report read. Nothing about a typed rate is blocked - the
+   * counter prices its own meat - but nothing about it is invisible either.
    */
   unitPriceOverride?: Cents;
   /** Grams for PER_KG. Ignored for the other modes. */
@@ -93,7 +93,7 @@ export interface CartLine {
   sku: string;
   name: string;
   pricingMode: PricingMode;
-  /** The rate actually charged — the typed one when there is one. */
+  /** The rate actually charged - the typed one when there is one. */
   unitPrice: Cents;
   /** The rate the catalogue holds, kept whether or not it was the one charged. */
   catalogueUnitPrice: Cents;
@@ -101,7 +101,7 @@ export interface CartLine {
   priceOverridden: boolean;
   /**
    * Charged gross minus catalogue gross. Negative means the line was sold
-   * below the board. Recorded, never blocked — this is the figure the audit
+   * below the board. Recorded, never blocked - this is the figure the audit
    * record is built on.
    */
   priceOverride: Cents;
@@ -114,7 +114,7 @@ export interface CartLine {
   net: Cents;
   taxClass: TaxClass;
   taxRatePercent: number;
-  /** VAT contained within `net` — prices are quoted VAT-inclusive. */
+  /** VAT contained within `net` - prices are quoted VAT-inclusive. */
   tax: Cents;
   /** Grams this line removes from stock. */
   stockGrams: Grams;
@@ -207,7 +207,7 @@ export function taxRateFor(taxClass: TaxClass, settings: PricingSettings): numbe
  * The rate this line is actually charged at: the one the cashier typed at the
  * counter, or the catalogue's when they did not type one.
  *
- * A typed rate of zero is not a free line, it is an empty field — the pad
+ * A typed rate of zero is not a free line, it is an empty field - the pad
  * cannot submit one and the server's schema rejects one, so the catalogue rate
  * standing in here is the safe reading rather than a giveaway.
  */
@@ -249,7 +249,7 @@ export function catalogueLineGross(input: CartLineInput): Cents {
  * Charged gross minus catalogue gross for one line.
  *
  * Negative means the shop took less than its board price. Neither direction is
- * blocked — this is the figure that makes a counter-set price *reviewable*,
+ * blocked - this is the figure that makes a counter-set price *reviewable*,
  * which is a different job from stopping it: it is what the audit log records
  * and what tells the owner, at the end of a week, which cuts are going out of
  * the door under the board and who is selling them that way.
@@ -326,7 +326,7 @@ export function priceLine(input: CartLineInput, settings: PricingSettings): Cart
  * Price a whole basket.
  *
  * A whole-sale discount is prorated back across lines by net value so the VAT
- * breakdown stays honest — you cannot take 10% off the basket and still report
+ * breakdown stays honest - you cannot take 10% off the basket and still report
  * the original tax on a standard-rated line.
  */
 export function priceSale(
@@ -412,7 +412,7 @@ function buildTaxBuckets(lines: readonly CartLine[]): TaxBucket[] {
  * all: the counter sets its own prices, so asking permission for the ordinary
  * act of pricing a cut would put a manager's PIN in front of every sale. Typed
  * rates are still recorded against the board rate on the line and written to
- * the audit log — visible after the fact rather than blocked before it.
+ * the audit log - visible after the fact rather than blocked before it.
  *
  * Pure, and deliberately so: the till asks this while the manager is still
  * standing at the counter, and the server asks it again before it banks
@@ -434,7 +434,7 @@ export function reductionNeedsApproval(
 // ---------------------------------------------------------------------------
 
 /**
- * Apply tenders to a priced sale. Split payments are normal here — part cash,
+ * Apply tenders to a priced sale. Split payments are normal here - part cash,
  * part M-Pesa is the most common basket over KSh 2,000.
  *
  * Only cash can produce change. Overpaying by M-Pesa or card is a data-entry
@@ -450,7 +450,7 @@ export function applyPayments(totals: SaleTotals, tenders: readonly Tender[]): P
   const tendered = sumCents(tenders.map((t) => t.amount));
   const nonCash = sumCents(tenders.filter((t) => t.method !== "CASH").map((t) => t.amount));
   if (nonCash > totals.total) {
-    throw new Error("applyPayments: non-cash tenders exceed the sale total — no change can be given on them");
+    throw new Error("applyPayments: non-cash tenders exceed the sale total - no change can be given on them");
   }
 
   const balanceDue = Math.max(0, totals.total - tendered);
@@ -460,7 +460,7 @@ export function applyPayments(totals: SaleTotals, tenders: readonly Tender[]): P
 }
 
 /**
- * What is still owed after the tenders taken so far — drives the "balance"
+ * What is still owed after the tenders taken so far - drives the "balance"
  * figure on the till's payment pad as each split is entered.
  */
 export function remainingBalance(total: Cents, tenders: readonly Tender[]): Cents {

@@ -9,7 +9,7 @@ import { formatKg } from "@/lib/weight";
  * receiving it, correcting it, and counting it.
  *
  * A correction needs a manager PIN; receiving and counting do not, because
- * they add evidence rather than remove it — an intake is checked against a
+ * they add evidence rather than remove it - an intake is checked against a
  * delivery note and a count's variance is the number that gets scrutinised.
  */
 export function StockForms({

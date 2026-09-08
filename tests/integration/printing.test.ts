@@ -17,7 +17,7 @@ import type { CurrentUser } from "@/lib/session";
  *
  * An 80mm thermal printer on the shop LAN is a TCP server on port 9100 that
  * accepts raw ESC/POS. This stands one up, points the adapter at it, and
- * checks that the bytes a customer's receipt is made of actually arrive —
+ * checks that the bytes a customer's receipt is made of actually arrive -
  * and, just as importantly, that a printer which is switched off costs the
  * shop a queued job rather than a sale.
  */
@@ -50,7 +50,7 @@ class FakePrinter {
    * Wait for the bytes to actually land.
    *
    * The adapter resolves once the payload is flushed to the socket, which is
-   * the right moment for it — the bytes are on the wire and the printer owns
+   * the right moment for it - the bytes are on the wire and the printer owns
    * them from there. The receiving side gets them a tick or two later, so a
    * test that reads immediately sees nothing. Waits for the first chunk, then
    * for a short quiet period so a multi-job drain is captured whole.
@@ -178,7 +178,7 @@ describe("printing a receipt over the network", () => {
   it("ends the receipt with a cut so the customer can tear it off", async () => {
     await printer.settle();
     const raw = Buffer.concat(printer.received);
-    // GS V 66 0 — feed and partial cut.
+    // GS V 66 0 - feed and partial cut.
     expect(raw.includes(Buffer.from([0x1d, 0x56, 0x42, 0x00]))).toBe(true);
   });
 
@@ -208,7 +208,7 @@ describe("when the printer is switched off", () => {
   });
 
   it("leaves the receipt queued rather than losing it", async () => {
-    // Port 1 is reserved and nothing listens there — a printer that is off.
+    // Port 1 is reserved and nothing listens there - a printer that is off.
     const dead = new NetworkPrinter("127.0.0.1", 1, 80, 300);
     const result = await drainPrintQueue(dead, store());
 

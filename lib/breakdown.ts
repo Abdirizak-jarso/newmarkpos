@@ -2,8 +2,8 @@
  * Carcass breakdown.
  *
  * A whole carcass comes in at one weight and leaves as many products at a
- * lower total weight. The difference is real — trim, bone dust, drip, fat
- * pulled off — and it must be RECORDED, not silently absorbed. A breakdown
+ * lower total weight. The difference is real - trim, bone dust, drip, fat
+ * pulled off - and it must be RECORDED, not silently absorbed. A breakdown
  * that always balanced to zero would mean nobody is measuring the loss, and
  * loss is where a butchery's margin actually goes.
  *
@@ -87,7 +87,7 @@ export function computeBreakdown(input: BreakdownInput): BreakdownResult {
   if (outputWeightGrams > input.inputWeightGrams) {
     throw new Error(
       `computeBreakdown: outputs weigh ${gramsToKg(outputWeightGrams)} kg but the carcass came in at ` +
-        `${gramsToKg(input.inputWeightGrams)} kg — meat cannot be created by cutting it up`,
+        `${gramsToKg(input.inputWeightGrams)} kg - meat cannot be created by cutting it up`,
     );
   }
 

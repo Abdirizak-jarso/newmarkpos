@@ -3,11 +3,11 @@
  *
  * Two roles, because the shop has two kinds of person: the cashier who serves
  * customers, and the admin who runs the place. Anything that can quietly move
- * money or stock — a void, a refund, a price change, a write-off — needs an
+ * money or stock - a void, a refund, a price change, a write-off - needs an
  * admin's PIN even when a cashier is the one at the till.
  *
  * Every check here runs on the server. Hiding a button is presentation, not
- * authorisation — the till is a browser on a shop counter and anyone can open
+ * authorisation - the till is a browser on a shop counter and anyone can open
  * the devtools on it. `requirePermission` in lib/session.ts is what actually
  * stops an action; the helpers below are also used by the UI to decide what to
  * show, which is a convenience layered on top of the real check, never
@@ -22,7 +22,7 @@ export const PERMISSIONS = [
   "sale.create",
   "sale.park",
   "sale.discount.small", // up to the configured threshold
-  "sale.discount.large", // above the threshold — admin territory
+  "sale.discount.large", // above the threshold - admin territory
   "sale.void",
   "sale.refund",
   "sale.reprint",
@@ -108,7 +108,7 @@ export function needsAdminApproval(permission: Permission): boolean {
 }
 
 /**
- * Who can authorise someone else's action. Only an admin — a cashier
+ * Who can authorise someone else's action. Only an admin - a cashier
  * approving their own void would make the whole approval step theatre.
  */
 export function canApprove(role: Role, permission: Permission): boolean {

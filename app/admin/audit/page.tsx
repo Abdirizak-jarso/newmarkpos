@@ -78,12 +78,12 @@ export default async function AuditPage({
                 </td>
                 <td className="px-3 py-2 text-char-700">{event.actor.name}</td>
                 <td className="px-3 py-2 text-char-600">
-                  {event.approver ? event.approver.name : <span className="text-char-400">—</span>}
+                  {event.approver ? event.approver.name : <span className="text-char-400">-</span>}
                 </td>
                 <td className="px-3 py-2">
                   <Change before={event.before} after={event.after} />
                 </td>
-                <td className="px-3 py-2 text-xs text-char-600">{event.reason ?? "—"}</td>
+                <td className="px-3 py-2 text-xs text-char-600">{event.reason ?? "-"}</td>
               </tr>
             ))}
           </Table>
@@ -110,7 +110,7 @@ function Change({ before, after }: { before: string | null; after: string | null
 
   const from = parse(before);
   const to = parse(after);
-  if (!from && !to) return <span className="text-char-400">—</span>;
+  if (!from && !to) return <span className="text-char-400">-</span>;
 
   const keys = [...new Set([...Object.keys(from ?? {}), ...Object.keys(to ?? {})])].slice(0, 4);
 
@@ -139,7 +139,7 @@ function Change({ before, after }: { before: string | null; after: string | null
 }
 
 function format(value: unknown): string {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) return "-";
   if (typeof value === "object") return JSON.stringify(value).slice(0, 60);
   return String(value);
 }

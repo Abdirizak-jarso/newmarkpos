@@ -6,7 +6,7 @@ import { voidSaleSchema } from "@/lib/validation";
 export async function POST(request: Request) {
   try {
     // Two gates: the signed-in user must be allowed to void at all, and a
-    // manager must then enter their PIN — checked inside voidSale.
+    // manager must then enter their PIN - checked inside voidSale.
     const actor = await requirePermission("sale.void");
 
     const parsed = voidSaleSchema.safeParse(await request.json());

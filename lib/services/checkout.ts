@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "../db";
 import { record } from "../audit";
 import { nextReceiptNumber, terminalId } from "../receipt-number";
-import { getPricingSettings, getSettings, getShopDetails } from "../settings";
+import { getSettings, pricingSettingsFrom, shopDetailsFrom } from "../settings";
 import {
   applyPayments,
   priceSale,
@@ -26,18 +26,18 @@ import type { CheckoutInput } from "../validation";
  *      catalogue rate is recorded beside it.
  *
  *      That is a narrowing of the old rule, not an abandonment of it. The till
- *      quotes no prices on the product grid — the cashier types the rate for
- *      every line — so "the server decides what things cost" would mean the
+ *      quotes no prices on the product grid - the cashier types the rate for
+ *      every line - so "the server decides what things cost" would mean the
  *      server ignoring the only figure anybody quoted the customer. What the
  *      server still does not allow is a price arriving SILENTLY: an override
  *      travels in its own field, the catalogue rate is stamped on the line
  *      next to it, the gap is measured, and a gap that goes the shop's way
  *      needs an admin's PIN and lands in the audit log. Everything else the
- *      client sends about money — totals, tax, the line arithmetic — is still
+ *      client sends about money - totals, tax, the line arithmetic - is still
  *      recomputed here and its version discarded.
  *   2. Commit the sale, its lines, its payments and its stock movements in one
  *      transaction.
- *   3. THEN queue the receipt, the eTIMS invoice and the sync push — all
+ *   3. THEN queue the receipt, the eTIMS invoice and the sync push - all
  *      outside the transaction, all failure-tolerant. A printer that is out of
  *      paper, a KRA endpoint that is down, or a dead network must not roll back
  *      a sale that has already been paid for.
@@ -68,7 +68,7 @@ export class CheckoutError extends Error {
 export async function checkout(input: CheckoutInput, cashier: CurrentUser): Promise<CheckoutResult> {
   const warnings: string[] = [];
 
-  // A sale that has already been banked must never be banked twice — a retried
+  // A sale that has already been banked must never be banked twice - a retried
   // offline sync is the normal way this happens, not an exceptional one.
   const existing = await db.sale.findUnique({
     where: { id: input.idempotencyKey },
@@ -86,8 +86,10 @@ export async function checkout(input: CheckoutInput, cashier: CurrentUser): Prom
     };
   }
 
+  // Read once. Each of these used to be its own trip to the database, and on
+  // this deployment that is a few hundred milliseconds of a customer's time.
   const settings = await getSettings();
-  const pricingSettings = await getPricingSettings();
+  const pricingSettings = pricingSettingsFrom(settings);
 
   // --- 1. Price from the catalogue -----------------------------------------
   const products = await db.product.findMany({
@@ -127,7 +129,7 @@ export async function checkout(input: CheckoutInput, cashier: CurrentUser): Prom
 
   if (!payment.settled) {
     throw new CheckoutError(
-      `Short by KSh ${(payment.balanceDue / 100).toFixed(2)} — take the balance before completing`,
+      `Short by KSh ${(payment.balanceDue / 100).toFixed(2)} - take the balance before completing`,
       "tenders",
     );
   }
@@ -140,7 +142,7 @@ export async function checkout(input: CheckoutInput, cashier: CurrentUser): Prom
    * in front of every sale, and a cashier who has to fetch someone to ring up
    * a leg of goat will stop using the till properly by the end of the week.
    *
-   * Typed rates are controlled after the fact instead of before it — the board
+   * Typed rates are controlled after the fact instead of before it - the board
    * rate is stamped on every sale line next to what was charged, and every one
    * of them is written to the audit log. What that buys is a shop that can see
    * what its counter is doing; what it costs is that the seeing happens in the
@@ -243,7 +245,7 @@ export async function checkout(input: CheckoutInput, cashier: CurrentUser): Prom
      * one sale's movement silently vanishes from the stock history. move()
      * re-reads inside the transaction.
      *
-     * Selling below zero is still allowed — the meat physically left the shop,
+     * Selling below zero is still allowed - the meat physically left the shop,
      * and a negative balance is the signal that the count is wrong, not a thing
      * to hide by refusing the sale in front of the customer.
      */
@@ -262,7 +264,7 @@ export async function checkout(input: CheckoutInput, cashier: CurrentUser): Prom
   });
 
   // --- 3. Everything that must not be able to undo the sale -----------------
-  const shop = await getShopDetails();
+  const shop = shopDetailsFrom(settings);
   const receiptBytes = renderReceipt(
     {
       shop,
@@ -289,7 +291,7 @@ export async function checkout(input: CheckoutInput, cashier: CurrentUser): Prom
   } catch (error) {
     // The sale is paid for and recorded. A failure to even queue the receipt
     // is worth telling the cashier about; it is not worth losing the sale.
-    warnings.push("Receipt could not be queued for printing — reprint from the sale list.");
+    warnings.push("Receipt could not be queued for printing - reprint from the sale list.");
     console.error("[checkout] failed to queue receipt", error);
   }
 
@@ -311,8 +313,8 @@ export async function checkout(input: CheckoutInput, cashier: CurrentUser): Prom
   if (totals.discount > 0) {
     /*
      * The sale is already committed at this point, so this write cannot be
-     * allowed to throw: everything else after the transaction — the receipt,
-     * the tax invoice, the sync row — is guarded the same way, and a sale that
+     * allowed to throw: everything else after the transaction - the receipt,
+     * the tax invoice, the sync row - is guarded the same way, and a sale that
      * banked but reported a failure sends the cashier back to ring it up again
      * in front of the customer.
      *
@@ -340,13 +342,13 @@ export async function checkout(input: CheckoutInput, cashier: CurrentUser): Prom
    * Every line whose rate was typed at the counter, one audit record each.
    *
    * Per line rather than one row for the sale, because the question anybody
-   * ever asks of this log is about a cut — "who sold the goat leg at 600 a
-   * kilo" — and a summed figure across a five-line basket cannot answer it.
+   * ever asks of this log is about a cut - "who sold the goat leg at 600 a
+   * kilo" - and a summed figure across a five-line basket cannot answer it.
    * Each record carries the board rate, the rate charged and the shillings
    * between them, so the gap is readable without reconstructing the catalogue
    * as it stood that day.
    *
-   * This log is now the ONLY control on counter pricing — nothing stops a rate
+   * This log is now the ONLY control on counter pricing - nothing stops a rate
    * being typed, so everything depends on it being written. That is why the
    * failure below is surfaced to the cashier rather than swallowed.
    *
@@ -400,7 +402,7 @@ export async function checkout(input: CheckoutInput, cashier: CurrentUser): Prom
  * A reduction is an admin's call once it is big enough to be worth stealing.
  *
  * The rule itself lives in lib/pricing.ts, because the till has to ask exactly
- * the same question while the manager is still standing at the counter — two
+ * the same question while the manager is still standing at the counter - two
  * implementations would eventually disagree, and the one that disagreed would
  * be the one letting money out of the shop.
  */

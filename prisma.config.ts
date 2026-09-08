@@ -13,7 +13,7 @@ import { defineConfig } from "prisma/config";
  * it differently:
  *   - Set by hand, or via `.env.example`: DIRECT_DATABASE_URL.
  *   - Set by Vercel's native Neon integration, with no custom prefix: it
- *     creates DATABASE_URL_UNPOOLED alongside DATABASE_URL — never
+ *     creates DATABASE_URL_UNPOOLED alongside DATABASE_URL - never
  *     DIRECT_DATABASE_URL, which is a name of ours, not Neon's.
  * Both are accepted so a migration works whichever way the project was wired.
  */

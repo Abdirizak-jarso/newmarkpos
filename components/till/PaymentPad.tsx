@@ -19,12 +19,12 @@ import type { TillTender } from "@/app/till/types";
  * the cashier's confirmation, the payment is filed as PENDING, and the code is
  * recorded afterwards from the list of sales still waiting for one.
  *
- * When the message has already arrived — often it has — the cashier opens the
+ * When the message has already arrived - often it has - the cashier opens the
  * code panel and enters it here, and the payment is confirmed outright. That is
  * the better outcome; it is just never the thing holding up the queue.
  */
 
-/** "14:32" — what the cashier reads off the customer's phone. */
+/** "14:32" - what the cashier reads off the customer's phone. */
 function clockNow(): string {
   const now = new Date();
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -40,7 +40,7 @@ export function toTimestamp(clock: string): string | null {
 
   const at = new Date();
   at.setHours(hours, minutes, 0, 0);
-  // A payment timed later than now is yesterday's — the shop trades past
+  // A payment timed later than now is yesterday's - the shop trades past
   // midnight and a cashier keying "23:50" at 00:10 means last night.
   if (at.getTime() > Date.now() + 60_000) at.setDate(at.getDate() - 1);
   return at.toISOString();
@@ -77,7 +77,7 @@ export function PaymentPad({
   const codeOk = MPESA_CODE.test(code);
   const timeOk = toTimestamp(paidAt) !== null;
   // Opening the panel means the cashier is holding the message. Half a code is
-  // worse than none — it would file as confirmed against something unmatchable.
+  // worse than none - it would file as confirmed against something unmatchable.
   const codeReady = !haveCode || (codeOk && timeOk);
 
   const complete = () => {
@@ -135,7 +135,7 @@ export function PaymentPad({
             >
               {haveCode
                 ? "Record the code later instead"
-                : "The customer already has the message — enter the code now"}
+                : "The customer already has the message - enter the code now"}
             </button>
 
             {haveCode && (

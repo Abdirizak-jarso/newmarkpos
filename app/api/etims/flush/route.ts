@@ -25,7 +25,7 @@ export async function POST() {
       return NextResponse.json({
         submitted: 0,
         pending: await db.taxInvoice.count({ where: { status: "PENDING" } }),
-        detail: "eTIMS is not configured — invoices are held locally and the shop trades normally.",
+        detail: "eTIMS is not configured - invoices are held locally and the shop trades normally.",
       });
     }
 

@@ -8,7 +8,7 @@
  * read at arm's length under fluorescent light while the cashier's hands are
  * busy. The back office is enamel-tile pale, because it is read sitting down.
  *
- * Touch targets on the till are never below 56px — the people using it are
+ * Touch targets on the till are never below 56px - the people using it are
  * wearing gloves.
  */
 
@@ -17,7 +17,7 @@
    * Newmark's colours come off the counter itself.
    *
    * The till is a weighing instrument: a cold matte chassis with exactly one
-   * lit surface on it. Everything structural is steel — the shop's cold room
+   * lit surface on it. Everything structural is steel - the shop's cold room
    * and its stainless benches, a grey that leans blue-green rather than the
    * neutral charcoal a web app reaches for. Brass is the interactive colour,
    * off the scale weights and the pendant light over the counter.
@@ -27,7 +27,7 @@
    * approvals that move money. If red is on screen, shillings are at stake.
    */
 
-  /* Steel — the chassis. Light end serves the back office, dark end the till. */
+  /* Steel - the chassis. Light end serves the back office, dark end the till. */
   --color-char-50: #f2f4f3;
   --color-char-100: #e4e8e7;
   --color-char-200: #cbd2d1;
@@ -40,7 +40,7 @@
   --color-char-900: #171e21;
   --color-char-950: #0f1417;
 
-  /* Brass — anything the cashier acts on. */
+  /* Brass - anything the cashier acts on. */
   --color-brass-50: #fbf4e6;
   --color-brass-100: #f5e6c4;
   --color-brass-200: #ead199;
@@ -53,7 +53,7 @@
   --color-brass-900: #4a2f10;
   --color-brass-950: #2a1b09;
 
-  /* Oxblood — money and the things that move it. Used sparingly, on purpose. */
+  /* Oxblood - money and the things that move it. Used sparingly, on purpose. */
   --color-meat-50: #faf0f0;
   --color-meat-100: #f2dcdc;
   --color-meat-200: #e4bbbb;
@@ -70,7 +70,7 @@
   --color-bone: #efeae0;
   --color-bone-dim: #b8b1a2;
 
-  /* Enamel tile — the back office ground. The shop's wall, not a sheet of paper. */
+  /* Enamel tile - the back office ground. The shop's wall, not a sheet of paper. */
   --color-tile: #e9ecea;
 
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -97,7 +97,7 @@ body {
   overscroll-behavior: none;
 }
 
-/* Figures that must line up in a column — totals, weights, prices. */
+/* Figures that must line up in a column - totals, weights, prices. */
 .tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
@@ -219,12 +219,26 @@ body {
 }
 
 @media print {
+  /*
+   * Print an 80mm till roll, not an A4 page with a receipt marooned on it.
+   *
+   * `auto` height is what makes it a roll: the page grows with the basket
+   * instead of breaking a twenty-line sale across two sheets. 3mm of margin is
+   * about what a thermal head leaves. A shop on 58mm paper changes the paper
+   * width setting for the ESC/POS bytes; this path is the browser's, and 80mm
+   * is the roll it is fed.
+   */
+  @page {
+    size: 80mm auto;
+    margin: 3mm;
+  }
+
   .no-print {
     display: none !important;
   }
 
   /*
-   * The on-screen receipt when there is no ESC/POS printer to send bytes to —
+   * The on-screen receipt when there is no ESC/POS printer to send bytes to -
    * or a "print" the cashier wants a real page or a PDF of. This is the
    * browser's own print pipeline (File > Print, or Save as PDF from that same
    * dialog), a completely different path from the NetworkPrinter/UsbPrinter
@@ -243,11 +257,26 @@ body {
   .receipt-print-area .receipt-print-sheet {
     max-height: none !important;
     box-shadow: none !important;
-    width: auto !important;
+    /* The page is already 80mm wide; fill it rather than sitting in a card. */
+    width: 100% !important;
     max-width: none !important;
+    border-radius: 0 !important;
   }
   .receipt-print-area .receipt-print-scroll {
     overflow: visible !important;
     max-height: none !important;
+    padding: 0 !important;
+  }
+
+  /*
+   * 42 monospaced columns across 74mm of usable paper. Sized in ch so the
+   * receipt's own column arithmetic - the item table, the totals block - comes
+   * out on paper exactly as it does on the roll, rather than being re-wrapped
+   * by whatever the browser felt like doing with 12px.
+   */
+  .receipt-print-area .receipt-paper {
+    font-size: 1.72mm;
+    line-height: 1.4;
+    color: #000 !important;
   }
 }

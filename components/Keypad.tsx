@@ -12,7 +12,7 @@ import { isTypingField, padShouldHandle } from "@/lib/keyboard";
  *
  * It also accepts the keyboard. The counter till is a touch screen, but it is
  * set up, trained on and tested with a keyboard attached, and a cashier who
- * has one will use it — typing "0.5" has to work as well as tapping it.
+ * has one will use it - typing "0.5" has to work as well as tapping it.
  */
 
 /**
@@ -51,7 +51,7 @@ export function Keypad({
     }
     if (key === ".") {
       // A second point would make the number unparseable, and a leading point
-      // is what someone means by ".5" — allow that, silently prefix the zero.
+      // is what someone means by ".5" - allow that, silently prefix the zero.
       if (value.includes(".")) return;
       onChange(value === "" ? "0." : `${value}.`);
       return;
@@ -83,12 +83,12 @@ export function Keypad({
     stack.push(id);
 
     const onKeyDown = (event: KeyboardEvent) => {
-      // Not the active pad — a dialog is open over this one.
+      // Not the active pad - a dialog is open over this one.
       if (stack[stack.length - 1] !== id) return;
 
       if (event.ctrlKey || event.metaKey || event.altKey) return;
 
-      // Whose keystroke is this? See lib/keyboard.ts — a field beside the pad
+      // Whose keystroke is this? See lib/keyboard.ts - a field beside the pad
       // keeps its own keys, a field stranded on the screen behind it does not.
       const target = event.target as HTMLElement | null;
       if (target) {

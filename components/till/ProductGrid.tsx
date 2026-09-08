@@ -7,13 +7,13 @@ import type { TillCategory, TillProduct } from "@/app/till/types";
 /**
  * The product grid.
  *
- * Cashiers find things by shape and position, not by reading — so categories
+ * Cashiers find things by shape and position, not by reading - so categories
  * are colour-coded, the grid order is stable, and a product never moves
  * because it happened to sell well this morning. Search is there for the long
  * tail (a customer asking for ossobuco by name), not as the primary path.
  *
- * No prices. A tile names a cut and says how it sells — by the kilo, each, or
- * by the pack — and the price is typed on the entry pad, at the counter, with
+ * No prices. A tile names a cut and says how it sells - by the kilo, each, or
+ * by the pack - and the price is typed on the entry pad, at the counter, with
  * the customer standing there. Putting a figure here would be quoting a price
  * nobody has agreed to yet, and a cashier who half-reads a tile they have seen
  * ten thousand times is exactly how the wrong one gets charged.
@@ -146,7 +146,7 @@ function ProductButton({
   const low = product.stockGrams <= lowStockGrams;
   const out = product.stockGrams <= 0;
 
-  // How it sells, not what it costs — this is what tells the cashier whether
+  // How it sells, not what it costs - this is what tells the cashier whether
   // the pad is about to ask them for a weight or a count.
   const unitLabel =
     product.pricingMode === "PER_KG"

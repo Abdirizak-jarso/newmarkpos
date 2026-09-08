@@ -79,7 +79,7 @@ export default async function AdminOverview() {
           <div className="sheet border border-brass-200 bg-brass-50 px-4 py-3 text-sm text-amber-900">
             {pendingPrints > 0 && (
               <p>
-                {pendingPrints} receipt{pendingPrints === 1 ? "" : "s"} waiting to print — check the
+                {pendingPrints} receipt{pendingPrints === 1 ? "" : "s"} waiting to print - check the
                 printer has paper and power.
               </p>
             )}
