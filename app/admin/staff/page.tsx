@@ -19,7 +19,7 @@ export default async function StaffPage() {
     <>
       <PageHeader
         title="Staff"
-        description="Each person signs in with their PIN alone — no two may share one. Permissions are enforced on the server; hiding a button is not authorisation."
+        description="Each person signs in with their PIN alone - no two may share one. Permissions are enforced on the server; hiding a button is not authorisation."
       />
 
       <div className="space-y-6 p-8">

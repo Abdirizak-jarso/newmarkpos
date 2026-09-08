@@ -3,7 +3,7 @@
  *
  * M-Pesa is the majority of non-cash takings at a Nairobi butchery counter.
  * Whether Newmark uses a Till or a Paybill, and whether Daraja API access has
- * been granted, are both open decisions — so the manual adapter (cashier reads
+ * been granted, are both open decisions - so the manual adapter (cashier reads
  * the confirmation SMS and types the code) is the default and must keep
  * working. It is what the counter falls back to whenever Safaricom's API is
  * slow, which is often.

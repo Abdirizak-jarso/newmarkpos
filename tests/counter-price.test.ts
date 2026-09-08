@@ -17,7 +17,7 @@ import {
  * every line. That makes the arithmetic here the arithmetic of every sale the
  * shop makes, not an edge case.
  *
- * No approval gates any of it — the counter sets its own prices. What the
+ * No approval gates any of it - the counter sets its own prices. What the
  * shop keeps instead is the record: the gap between the typed rate and the
  * board rate on every line, which is what makes the pricing reviewable in the
  * evening. These tests hold that record to being correct, because with the
@@ -146,7 +146,7 @@ describe("basket totals", () => {
 
   it("does not let an overcharge cancel out an undercharge", () => {
     // Netting these off would show a basket priced exactly at the board, and
-    // the KSh 180 given away on the first line would stop being visible — in
+    // the KSh 180 given away on the first line would stop being visible - in
     // the one report the owner has for spotting it.
     const sale = priceSale(
       [
@@ -176,8 +176,8 @@ describe("basket totals", () => {
 describe("nothing about a typed rate needs approval", () => {
   /**
    * The gate is on discounts and nowhere else. These pin that down at the
-   * rates most likely to make someone reach for a PIN prompt — half the board
-   * price, and a third of it — because the moment one creeps back in, every
+   * rates most likely to make someone reach for a PIN prompt - half the board
+   * price, and a third of it - because the moment one creeps back in, every
    * sale at this counter needs a manager.
    */
   it("asks nobody about a rate keyed far below the board", () => {

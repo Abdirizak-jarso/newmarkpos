@@ -15,7 +15,7 @@ export default async function SettingsPage() {
   const settings = await getSettings();
 
   // Ask each adapter how it is doing. None of these throws when the hardware
-  // is absent — that is the whole point of the adapter layer.
+  // is absent - that is the whole point of the adapter layer.
   const [printerStatus, scaleStatus] = await Promise.all([
     createPrinter().status(),
     createScaleAdapter().status(),
@@ -49,7 +49,7 @@ export default async function SettingsPage() {
               label="KRA eTIMS"
               adapter={taxAuthority.name}
               connected={taxAuthority.enabled}
-              detail={taxAuthority.enabled ? "Submitting invoices" : "Not configured — sales unaffected"}
+              detail={taxAuthority.enabled ? "Submitting invoices" : "Not configured - sales unaffected"}
             />
             <Peripheral
               label="M-Pesa"
@@ -61,7 +61,7 @@ export default async function SettingsPage() {
 
           <p className="mt-4 text-xs text-char-500">
             Terminal <span className="tabular font-medium">{terminalId()}</span>. Peripherals are
-            configured in <code className="rounded bg-char-100 px-1">.env</code> — a missing device
+            configured in <code className="rounded bg-char-100 px-1">.env</code> - a missing device
             never stops the shop trading.
           </p>
         </Card>
@@ -91,7 +91,7 @@ function Peripheral({
       </div>
       <p className="mt-1 text-xs text-char-500">
         {adapter}
-        {detail ? ` — ${detail}` : ""}
+        {detail ? ` - ${detail}` : ""}
       </p>
     </div>
   );

@@ -3,8 +3,8 @@
 /**
  * The offline outbox.
  *
- * The till is local-first. When the network is down — which at Bishan Plaza is
- * a normal Tuesday, not a disaster — a completed sale is written to IndexedDB
+ * The till is local-first. When the network is down - which at Bishan Plaza is
+ * a normal Tuesday, not a disaster - a completed sale is written to IndexedDB
  * and the customer walks out with their meat and their receipt. The outbox
  * drains to the server the moment the connection comes back.
  *
@@ -100,11 +100,11 @@ async function noteFailure(entry: OutboxEntry, error: string): Promise<void> {
  * The three outcomes are not interchangeable and getting them the wrong way
  * round is how a till loses a day's takings:
  *
- *   keep   — banked. Take it out of the outbox.
- *   drop   — the server has judged it and will judge it the same way forever
+ *   keep   - banked. Take it out of the outbox.
+ *   drop   - the server has judged it and will judge it the same way forever
  *            (a deleted product, a malformed body). Retrying wedges the whole
  *            queue behind one bad row, so it comes out and is reported loudly.
- *   retry  — the server is broken or unreachable, which says nothing about the
+ *   retry  - the server is broken or unreachable, which says nothing about the
  *            sale. Leave it, stop, and try the whole queue again later.
  *
  * 408 and 429 are the ones worth being careful about: they are 4xx by number
@@ -130,7 +130,7 @@ export interface FlushResult {
  * Push everything in the outbox to the server, oldest first.
  *
  * A 4xx means the server has judged the sale and will keep judging it the same
- * way — retrying forever would wedge the queue behind one bad row, so it is
+ * way - retrying forever would wedge the queue behind one bad row, so it is
  * dropped and reported. A 5xx or a network failure is left to try again.
  */
 export async function flushOutbox(): Promise<FlushResult> {
@@ -163,7 +163,7 @@ export async function flushOutbox(): Promise<FlushResult> {
 
       if (disposition === "drop") {
         // Rejected on its merits. Keep it out of the way but do not lose the
-        // fact that it happened — the message names the receipt.
+        // fact that it happened - the message names the receipt.
         await removeEntry(entry.id);
         failed += 1;
         lastError = `Sale rejected by the server: ${detail.slice(0, 200)}`;
@@ -173,7 +173,7 @@ export async function flushOutbox(): Promise<FlushResult> {
 
       await noteFailure(entry, detail.slice(0, 200));
       failed += 1;
-      lastError = "Server error — will retry";
+      lastError = "Server error - will retry";
       break;
     } catch (error) {
       // Still offline. Stop; the next online event will call this again.

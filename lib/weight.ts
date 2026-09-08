@@ -1,11 +1,11 @@
 /**
- * Weight. Stored to 3 decimal places — gram precision — everywhere.
+ * Weight. Stored to 3 decimal places - gram precision - everywhere.
  *
  * Internally weight is an integer number of GRAMS. That keeps the same
  * "no floats for quantities that must reconcile" discipline as lib/money.ts:
  * a scale reading of 1.235 kg is 1235, not 1.2349999999999999.
  *
- * Never round a weight to 2 dp. 10 g of fillet at KSh 1,800/kg is KSh 18 —
+ * Never round a weight to 2 dp. 10 g of fillet at KSh 1,800/kg is KSh 18 -
  * losing it on every line is how a butchery quietly bleeds margin.
  */
 
@@ -41,7 +41,7 @@ export function gramsToKg(grams: Grams): number {
   return grams / GRAMS_PER_KG;
 }
 
-/** "1.235" — always three decimals, so receipts line up in a fixed-width font. */
+/** "1.235" - always three decimals, so receipts line up in a fixed-width font. */
 export function formatKg(grams: Grams, opts: { unit?: boolean } = {}): string {
   assertGrams(grams);
   const negative = grams < 0;
@@ -71,7 +71,7 @@ export function weightLineTotal(pricePerKg: Cents, grams: Grams): Cents {
  * A customer asking for "meat worth 500 bob" is a primary flow at the Newmark
  * counter, not an edge case. The cashier types 500, the scale target comes
  * back in grams, they cut to it and the line is then priced from the ACTUAL
- * weight — so the amount is a target, never the stored quantity.
+ * weight - so the amount is a target, never the stored quantity.
  */
 export function weightForAmount(pricePerKg: Cents, amount: Cents): Grams {
   assertCents(pricePerKg, "pricePerKg");
@@ -81,7 +81,7 @@ export function weightForAmount(pricePerKg: Cents, amount: Cents): Grams {
 }
 
 /**
- * Tare: net = gross - container. Returned as grams, never negative — a tare
+ * Tare: net = gross - container. Returned as grams, never negative - a tare
  * heavier than the gross means the cashier weighed the tub without the meat.
  */
 export function netWeight(gross: Grams, tare: Grams): Grams {
@@ -94,7 +94,7 @@ export function netWeight(gross: Grams, tare: Grams): Grams {
 
 /**
  * Yield percentage of a carcass breakdown output against its input weight,
- * to one decimal place. Yields never sum to 100 — the balance is shrinkage.
+ * to one decimal place. Yields never sum to 100 - the balance is shrinkage.
  */
 export function yieldPercent(outputGrams: Grams, inputGrams: Grams): number {
   assertGrams(outputGrams, "output");

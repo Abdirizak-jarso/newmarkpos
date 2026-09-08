@@ -37,7 +37,7 @@ export function MpesaCodeQueue({
       setWaiting(data.waiting);
       onChanged(data.waiting.length);
     } catch {
-      setError("Could not load the list. The sales are safe — try again.");
+      setError("Could not load the list. The sales are safe - try again.");
     }
   }, [onChanged]);
 

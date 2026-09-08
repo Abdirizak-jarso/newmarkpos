@@ -22,7 +22,7 @@ export interface IdentifiedUser {
  *
  * The indexed HMAC narrows it to one candidate; scrypt then confirms it, so a
  * forged or colliding lookup value still cannot get anybody in. Deactivated
- * staff are excluded here rather than by the caller — a PIN that no longer
+ * staff are excluded here rather than by the caller - a PIN that no longer
  * belongs to anyone working must behave exactly like a wrong PIN.
  */
 export async function identifyByPin(pin: string): Promise<IdentifiedUser | null> {

@@ -98,7 +98,7 @@ function CarcassCard({ entry }: { entry: CarcassLedgerEntry }) {
                 ) : (
                   <>
                     <strong className="text-char-900">{formatCents(stillOut)}</strong> of its cost
-                    is still out there — {formatCents(entry.onHandValue)} of it hanging in the
+                    is still out there - {formatCents(entry.onHandValue)} of it hanging in the
                     case at board price.
                   </>
                 )}
@@ -110,7 +110,7 @@ function CarcassCard({ entry }: { entry: CarcassLedgerEntry }) {
 
       <details className="border-t border-char-200">
         <summary className="cursor-pointer px-4 py-2.5 text-xs font-medium text-char-600 hover:bg-char-100">
-          What came off it — {entry.outputs.length} cuts
+          What came off it - {entry.outputs.length} cuts
         </summary>
         <div className="overflow-x-auto px-4 pb-4">
           <table className="w-full text-sm">

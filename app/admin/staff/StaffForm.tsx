@@ -10,11 +10,11 @@ const input = "h-10 w-full sheet border border-char-300 px-2 text-sm";
 /**
  * Add or edit a staff account.
  *
- * The PIN is how this person signs in — it is the only thing they type at the
+ * The PIN is how this person signs in - it is the only thing they type at the
  * till, so it identifies them as well as authorises them. No two people may
  * share one.
  *
- * Editing leaves the PIN field blank — an empty PIN means "leave it alone",
+ * Editing leaves the PIN field blank - an empty PIN means "leave it alone",
  * because a manager tidying up somebody's name should not silently reset the
  * PIN they use a hundred times a day.
  */
@@ -90,7 +90,7 @@ export function StaffForm({
           autoComplete="off"
           minLength={PIN_MIN_LENGTH}
           maxLength={PIN_MAX_LENGTH}
-          placeholder={`${PIN_MIN_LENGTH}–${PIN_MAX_LENGTH} digits`}
+          placeholder={`${PIN_MIN_LENGTH}-${PIN_MAX_LENGTH} digits`}
           className={input}
         />
         <span className="mt-1 block text-[11px] text-char-500">

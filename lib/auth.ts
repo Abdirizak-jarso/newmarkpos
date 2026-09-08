@@ -7,8 +7,8 @@ import { PIN_MAX_LENGTH, PIN_MIN_LENGTH, isValidPinFormat } from "./pin";
  *
  * The PIN is the whole credential: a cashier taps six digits and the till
  * knows who they are. Nothing else is typed. That is the right trade at a shop
- * counter — a staff code as well would be two-factor in name only, since it is
- * printed on the rota and everyone knows everyone else's — but it does mean
+ * counter - a staff code as well would be two-factor in name only, since it is
+ * printed on the rota and everyone knows everyone else's - but it does mean
  * the PIN carries all the weight, so:
  *
  *   - PINs are six to eight digits, not four. Four digits across a dozen staff
@@ -62,7 +62,7 @@ export async function hashPin(pin: string): Promise<PinCredentials> {
 }
 
 export async function verifyPin(pin: string, stored: PinHash): Promise<boolean> {
-  // Not a format complaint at this point — a malformed PIN is simply wrong,
+  // Not a format complaint at this point - a malformed PIN is simply wrong,
   // and answering differently would tell an attacker something.
   if (!/^\d+$/.test(pin)) return false;
 
@@ -82,8 +82,8 @@ export async function verifyPin(pin: string, stored: PinHash): Promise<boolean> 
  *
  * Signing in with nothing but a PIN means the till has to find the owner from
  * the PIN alone. Testing the scrypt hash of every member of staff would work
- * but costs ~50ms each — a second of dead time at the counter with twenty
- * staff — so this indexed HMAC finds the one candidate and scrypt then
+ * but costs ~50ms each - a second of dead time at the counter with twenty
+ * staff - so this indexed HMAC finds the one candidate and scrypt then
  * confirms it. It doubles as the uniqueness constraint on PINs.
  *
  * The pepper lives in the environment, never in the database. Without it these
@@ -109,7 +109,7 @@ export function generateSessionToken(): string {
  *
  * Keyed by terminal rather than by person: with nothing typed but a PIN there
  * is no account to attribute a failure to, so the pad itself locks. That is
- * also the right shape for the actual threat — somebody standing at an
+ * also the right shape for the actual threat - somebody standing at an
  * unattended till working through six-digit guesses.
  *
  * Held in memory. A till is a single long-running process, and a lockout that

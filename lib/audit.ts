@@ -5,7 +5,7 @@ import { db } from "./db";
  * The audit log.
  *
  * Append-only: this module exposes `record` and nothing else. There is no
- * update, no delete, and no "clean up old events" helper — if one is ever
+ * update, no delete, and no "clean up old events" helper - if one is ever
  * added, the log stops being evidence. Retention is a database-level decision
  * for the owner and their accountant, not something the app does quietly.
  *
@@ -89,7 +89,7 @@ export async function recordSafely(input: AuditInput): Promise<void> {
 }
 
 /**
- * PIN hashes and session tokens must never reach the audit log — it is the one
+ * PIN hashes and session tokens must never reach the audit log - it is the one
  * table people are given broad read access to.
  */
 const SECRET_KEYS = new Set(["pin", "pinHash", "pinSalt", "token", "password", "passkey", "consumerSecret"]);

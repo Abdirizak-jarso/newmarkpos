@@ -4,7 +4,7 @@ import { can } from "@/lib/permissions";
 
 /**
  * Where someone lands depends on what they are here to do. A cashier goes
- * straight to the till — the shop opens at 7am and nobody wants a menu.
+ * straight to the till - the shop opens at 7am and nobody wants a menu.
  */
 export default async function Home() {
   const user = await getCurrentUser();

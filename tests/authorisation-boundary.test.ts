@@ -8,8 +8,8 @@ import { describe, expect, it } from "vitest";
  * "Permissions are enforced server-side. Hiding a button is not authorisation."
  * That rule is only true while every server entry point actually checks. A new
  * route handler or server action that forgets is invisible: it typechecks, it
- * builds, it works perfectly in testing — because the person testing it is
- * signed in as the admin — and it ships as a hole.
+ * builds, it works perfectly in testing - because the person testing it is
+ * signed in as the admin - and it ships as a hole.
  *
  * So the boundary is checked mechanically rather than by remembering. Every
  * route handler and every server action must reach a gate:
@@ -107,7 +107,7 @@ describe("every admin page is gated", () => {
 /**
  * The audit log is append-only.
  *
- * "lib/audit.ts exposes record and nothing else — no update, no delete, no
+ * "lib/audit.ts exposes record and nothing else - no update, no delete, no
  * retention helper." A log somebody can edit is not evidence, and the whole
  * point of recording the approver on a void is that it cannot be tidied away
  * afterwards.
@@ -137,7 +137,7 @@ describe("the audit log cannot be rewritten", () => {
 /**
  * Stock never moves anonymously.
  *
- * "Never write product.stockGrams directly" — every change goes through move(),
+ * "Never write product.stockGrams directly" - every change goes through move(),
  * which writes the StockMovement row in the same transaction. A direct write
  * leaves stock that changed with no reason and no actor, and the first anyone
  * knows is a count that will not reconcile.

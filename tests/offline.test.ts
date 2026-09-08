@@ -8,7 +8,7 @@ import { checkoutSchema } from "@/lib/validation";
  * The till sells with no network and drains to the server when it comes back.
  * Two things must hold or the shop loses money it has already taken:
  *
- *   a replayed sale must never bank twice — the idempotency key is the whole
+ *   a replayed sale must never bank twice - the idempotency key is the whole
  *   defence, and it is generated on the client;
  *
  *   a queue must never wedge. One unsendable sale sitting at the head of the
@@ -17,7 +17,7 @@ import { checkoutSchema } from "@/lib/validation";
 
 describe("the idempotency key", () => {
   it("is unique across a busy day's worth of sales", () => {
-    // Far more than a counter does in a day, generated as fast as possible —
+    // Far more than a counter does in a day, generated as fast as possible -
     // the case where a time-based key would collide.
     const keys = new Set<string>();
     for (let i = 0; i < 20_000; i++) keys.add(newIdempotencyKey());

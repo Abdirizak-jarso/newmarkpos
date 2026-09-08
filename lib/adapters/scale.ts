@@ -2,7 +2,7 @@
  * Scale access. Every weight in the system arrives through this interface, so
  * no code path can require hardware to be present.
  *
- * ManualScaleAdapter is not a stub to be replaced later — it is the fallback
+ * ManualScaleAdapter is not a stub to be replaced later - it is the fallback
  * the counter falls back to when the scale is unplugged, its battery is flat,
  * or the serial cable is being borrowed. It must keep working.
  */
@@ -30,7 +30,7 @@ export interface ScaleStatus {
 
 export interface ScaleAdapter {
   readonly name: string;
-  /** Never throws for "no hardware" — check `connected` on the result. */
+  /** Never throws for "no hardware" - check `connected` on the result. */
   status(): Promise<ScaleStatus>;
   /** A settled weight, or null when no stable reading is available. */
   read(): Promise<ScaleReading | null>;
@@ -83,7 +83,7 @@ export class ManualScaleAdapter implements ScaleAdapter {
  *     US,NT,   0.480kg\r\n     unsettled net
  *
  * The exact model is still an open decision, so the wire format lives in one
- * parser below and the transport is loaded lazily — the module must import
+ * parser below and the transport is loaded lazily - the module must import
  * cleanly on a machine with no serial port and no serial library installed.
  */
 export class SerialScaleAdapter implements ScaleAdapter {
@@ -131,7 +131,7 @@ export class SerialScaleAdapter implements ScaleAdapter {
         | { SerialPort: new (opts: { path: string; baudRate: number }) => unknown }
         | null;
       if (!mod) {
-        this.lastError = "serialport not installed — using manual entry";
+        this.lastError = "serialport not installed - using manual entry";
         return;
       }
       const port = new mod.SerialPort({ path: this.path, baudRate: this.baudRate });

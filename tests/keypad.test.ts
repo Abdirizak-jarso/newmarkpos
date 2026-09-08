@@ -153,7 +153,7 @@ describe("routing a keystroke to the pad", () => {
  * Setting a price at the counter.
  *
  * The cashier types a weight and the money to charge for it. The till never
- * sends a price — the server would ignore it — so it sends the gap between the
+ * sends a price - the server would ignore it - so it sends the gap between the
  * catalogue figure and what was agreed, as a line discount. These tests pin the
  * arithmetic that has to hold for the customer to be charged exactly what the
  * cashier typed and no more.

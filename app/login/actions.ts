@@ -18,7 +18,7 @@ export interface LoginState {
  *
  * The PIN is the whole credential: it says who you are and what you may do.
  * Nothing identifies the person first, so a wrong PIN can only ever be
- * answered with "not recognised" — there is no account to say it about.
+ * answered with "not recognised" - there is no account to say it about.
  */
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const parsed = loginSchema.safeParse({ pin: formData.get("pin") });
@@ -26,7 +26,7 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
     return { error: parsed.error.issues[0]?.message ?? "Enter your PIN" };
   }
 
-  // The pad locks, not an account — with only a PIN typed there is nobody to
+  // The pad locks, not an account - with only a PIN typed there is nobody to
   // attribute the failures to, and the threat is someone working through
   // guesses at an unattended till.
   const lockedMs = pinLockoutRemainingMs();
@@ -39,11 +39,11 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   if (!user) {
     const remaining = recordFailedPin();
     // Deliberately not an audit entry. The audit log records who did what, and
-    // an unrecognised PIN has no who — attributing it to a placeholder actor
+    // an unrecognised PIN has no who - attributing it to a placeholder actor
     // would put a fiction in the one table that has to be trustworthy. The
     // server log is the right home for it.
     console.warn(
-      `[login] unrecognised PIN at terminal ${process.env.TERMINAL_ID ?? "T1"} — ${remaining} attempts left`,
+      `[login] unrecognised PIN at terminal ${process.env.TERMINAL_ID ?? "T1"} - ${remaining} attempts left`,
     );
     return { error: `PIN not recognised (${remaining} attempts left)` };
   }

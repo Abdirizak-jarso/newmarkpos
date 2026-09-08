@@ -8,7 +8,7 @@ import type { CurrentUser } from "@/lib/session";
  * Stock, and the carcass breakdown that feeds it.
  *
  * The thing being protected here is that nothing moves stock anonymously and
- * that breakdown loss is recorded rather than absorbed — which is where a
+ * that breakdown loss is recorded rather than absorbed - which is where a
  * butchery's margin actually goes.
  */
 

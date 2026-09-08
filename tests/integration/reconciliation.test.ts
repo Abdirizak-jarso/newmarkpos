@@ -157,7 +157,7 @@ describe("a payment that never gets its code", () => {
  * Refunding a line that was haggled down.
  *
  * The customer paid the agreed price, not the board price. Refunding the board
- * price hands back money the shop never took — the single most expensive
+ * price hands back money the shop never took - the single most expensive
  * arithmetic mistake a POS can make, because it looks generous rather than wrong.
  */
 describe("refunding a line whose price was set at the counter", () => {
@@ -239,7 +239,7 @@ describe("refunding a line whose price was set at the counter", () => {
       admin,
     );
 
-    // Half the meat, half of what was paid for it — never half the board price.
+    // Half the meat, half of what was paid for it - never half the board price.
     expect(Math.abs(refund.amount)).toBe(Math.round(paid / 2));
   });
 });

@@ -60,7 +60,7 @@ export class NoopTaxAuthority implements TaxAuthorityAdapter {
  *
  * The exact endpoint shape depends on the device Newmark is issued at
  * onboarding, which is still an open decision. The request mapping below is
- * kept in one place so only this file changes when that is confirmed — and it
+ * kept in one place so only this file changes when that is confirmed - and it
  * degrades to PENDING rather than throwing, so a KRA outage cannot stop a sale.
  */
 export class EtimsTaxAuthority implements TaxAuthorityAdapter {

@@ -12,17 +12,17 @@ import type { TillLine, TillProduct } from "@/app/till/types";
  *
  * The product grid quotes no prices. A cut is chosen by name, and the price it
  * sells at is typed here, at the counter, next to the customer it was agreed
- * with — so this pad always asks for two figures rather than one:
+ * with - so this pad always asks for two figures rather than one:
  *
  *   Rate      what a kilo costs (or what one piece or one pack costs)
- *   Weight    what the scale says — or, on the amount tab, the shillings the
+ *   Weight    what the scale says - or, on the amount tab, the shillings the
  *             customer asked for, which the pad turns back into a weight
  *
  * line total = rate x weight. The rate travels to the server in its own field
  * as `unitPriceOverride`; the server charges it, stamps the catalogue rate
  * beside it on the sale line, and makes an admin approve anything keyed far
  * enough below the board to be worth stealing. A rate ABOVE the board is fine
- * and needs nobody — the shop cannot be robbed upwards, and a catalogue that
+ * and needs nobody - the shop cannot be robbed upwards, and a catalogue that
  * has fallen behind this morning's price must never stop the counter trading.
  *
  * The board rate is offered as one tap rather than prefilled. Prefilling it
@@ -137,7 +137,7 @@ export function EntryPad({
         quantity,
         weightGrams: undefined,
         requestedAmount: undefined,
-        // Nothing here is a discount any more — the rate itself carries the
+        // Nothing here is a discount any more - the rate itself carries the
         // price. Cleared explicitly so reopening an older line and re-saving
         // it cannot leave a stale reduction sitting under the new rate.
         discount: undefined,
@@ -174,7 +174,7 @@ export function EntryPad({
     if (next === mode) return;
     setMode(next);
     // Kilograms and shillings are not the same number; carrying one across
-    // would silently charge for the wrong thing. The rate stays — it is the
+    // would silently charge for the wrong thing. The rate stays - it is the
     // same rate either way.
     setAmount("");
     setField("QUANTITY");
@@ -194,18 +194,18 @@ export function EntryPad({
       };
 
       if (!data.connected || data.grams === undefined) {
-        setScaleError(data.detail ?? "No scale connected — type the weight");
+        setScaleError(data.detail ?? "No scale connected - type the weight");
         return;
       }
       if (!data.stable) {
-        setScaleError("Scale is still settling — wait a moment");
+        setScaleError("Scale is still settling - wait a moment");
         return;
       }
       setMode("WEIGHT");
       setAmount(formatKg(data.grams));
       setField(rate === "" ? "RATE" : "QUANTITY");
     } catch {
-      setScaleError("Could not reach the scale — type the weight");
+      setScaleError("Could not reach the scale - type the weight");
     } finally {
       setReading(false);
     }
@@ -315,7 +315,7 @@ export function EntryPad({
             >
               <span>Board price</span>
               <span className="tabular font-semibold">
-                {formatCents(product.price)} {unitLabel} — tap to use
+                {formatCents(product.price)} {unitLabel} - tap to use
               </span>
             </button>
           )}
@@ -362,11 +362,11 @@ export function EntryPad({
 
           <p className="mt-2 text-center text-[11px] text-char-600">
             {field === "RATE"
-              ? "Typing the price — Enter moves to the quantity"
+              ? "Typing the price - Enter moves to the quantity"
               : !perKg
                 ? "Whole pieces"
                 : mode === "WEIGHT"
-                  ? "Typing the weight — 0.5 and .5 both work"
+                  ? "Typing the weight - 0.5 and .5 both work"
                   : "Typing the shillings the customer asked for"}
           </p>
 
@@ -397,7 +397,7 @@ export function EntryPad({
  * One of the two figures on the pad.
  *
  * The selected row is the one being typed into, marked by a rule down its left
- * edge — under strip lighting that reads faster than a change of tint, and it
+ * edge - under strip lighting that reads faster than a change of tint, and it
  * survives being looked at from an angle.
  */
 function EntryRow({

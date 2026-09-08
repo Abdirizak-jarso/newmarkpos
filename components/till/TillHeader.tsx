@@ -46,7 +46,7 @@ export function TillHeader({
       <div className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-1">
         <Status
           tone={online ? "ok" : "warn"}
-          label={online ? "Online" : "Offline — still selling"}
+          label={online ? "Online" : "Offline - still selling"}
         />
         {queued > 0 && <Status tone="warn" label={`${queued} to sync`} />}
         {/*

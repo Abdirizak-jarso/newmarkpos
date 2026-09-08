@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
  * The client/server boundary.
  *
  * A "use client" component that imports a module using `node:crypto` compiles
- * without complaint and then throws at module evaluation in the browser — the
+ * without complaint and then throws at module evaluation in the browser - the
  * bundler substitutes an empty stub, `scrypt` is undefined, and `promisify`
  * blows up before the page renders. Nothing in typecheck or build catches it.
  *
@@ -64,7 +64,7 @@ describe("client components", () => {
     for (const { file, source } of clientComponents) {
       for (const line of source.split("\n")) {
         // `import type { X } from "..."` is erased at compile time and never
-        // reaches the bundle, so it is safe and common — a client component
+        // reaches the bundle, so it is safe and common - a client component
         // legitimately needs the shape of a server type. Only value imports
         // pull the module in.
         if (/^\s*import\s+type\s/.test(line)) continue;

@@ -67,7 +67,7 @@ describe("formatCents", () => {
     expect(formatCents(-125_050)).toBe("-1,250.50");
   });
 
-  it("refuses fractional cents — that would mean a float leaked in", () => {
+  it("refuses fractional cents - that would mean a float leaked in", () => {
     expect(() => formatCents(10.5)).toThrow(/integer cents/);
   });
 });

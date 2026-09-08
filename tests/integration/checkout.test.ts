@@ -82,7 +82,7 @@ describe("checkout", () => {
 
   it("charges the rate the cashier typed, and records the board rate beside it", async () => {
     const product = await db.product.findUniqueOrThrow({ where: { id: cubesId } });
-    const typed = product.price + 40_00; // above the board — nobody needs to approve it
+    const typed = product.price + 40_00; // above the board - nobody needs to approve it
     const input = basket(key());
     input.lines = [{ lineId: "l1", productId: cubesId, weightGrams: 1235, unitPriceOverride: typed }];
     input.tenders = [{ method: "CASH" as const, amount: 200_000 }];
@@ -134,7 +134,7 @@ describe("checkout", () => {
 
   it("takes a rate keyed far below the board from a cashier, with no PIN", async () => {
     const product = await db.product.findUniqueOrThrow({ where: { id: cubesId } });
-    // Half the board price — past the seeded KSh 500 / 10% discount threshold,
+    // Half the board price - past the seeded KSh 500 / 10% discount threshold,
     // which is exactly the point: that threshold governs discounts, not the
     // price the counter sets.
     const typed = Math.round(product.price / 2);
@@ -205,7 +205,7 @@ describe("checkout", () => {
   it("never puts an approver's name against a price nobody approved", async () => {
     /*
      * A sale can carry an approved discount on one line and a typed rate on
-     * another. The discount's approver must not leak onto the price record —
+     * another. The discount's approver must not leak onto the price record -
      * that would read, for ever, as an admin having signed off a price they
      * were never shown.
      */
@@ -251,7 +251,7 @@ describe("checkout", () => {
     const product = await db.product.findUniqueOrThrow({ where: { id: cubesId } });
     const input = basket(key());
     // A field the client has no business setting. It is not in the schema and
-    // it is not read — the line prices from the catalogue as if it were absent.
+    // it is not read - the line prices from the catalogue as if it were absent.
     (input.lines[0] as Record<string, unknown>).unitPrice = 1_00;
     (input.lines[0] as Record<string, unknown>).gross = 1_00;
 
@@ -360,7 +360,7 @@ describe("admin approval", () => {
   });
 
   it("refuses a cashier's own PIN for a admin action", async () => {
-    // The PIN is perfectly valid — it just belongs to someone who does not
+    // The PIN is perfectly valid - it just belongs to someone who does not
     // carry the permission, and the server is where that is decided.
     await expect(verifyApprover("270496", "sale.void")).rejects.toThrow(/cannot authorise/);
   });
@@ -521,7 +521,7 @@ describe("refund", () => {
  * This is the shop's actual counter flow: the customer pays, the sale banks and
  * the receipt prints, and the Safaricom confirmation is matched to it minutes
  * later. What must hold is that the shop can always tell which money it can
- * prove and which it cannot — an M-Pesa payment is not CONFIRMED until a code
+ * prove and which it cannot - an M-Pesa payment is not CONFIRMED until a code
  * is against it, and no code may be claimed twice.
  */
 describe("M-Pesa reconciliation", () => {
@@ -543,7 +543,7 @@ describe("M-Pesa reconciliation", () => {
     expect(payment.status).toBe("PENDING");
     expect(payment.reference).toBeNull();
 
-    // The sale itself is complete and the receipt is queued — the missing code
+    // The sale itself is complete and the receipt is queued - the missing code
     // holds nothing up at the counter.
     const banked = await db.sale.findUniqueOrThrow({ where: { id: sale.saleId } });
     expect(banked.status).toBe("COMPLETED");
@@ -717,7 +717,7 @@ describe("M-Pesa reconciliation", () => {
  * The till sends the gap between the catalogue price and what was agreed, never
  * a price. What has to hold end to end: the customer is charged exactly the
  * figure the cashier typed, the sale still records the catalogue price it was
- * struck from, and a big enough reduction cannot be banked without a manager —
+ * struck from, and a big enough reduction cannot be banked without a manager -
  * because the client asking nicely is not authorisation.
  */
 describe("setting a price at the counter", () => {
@@ -766,7 +766,7 @@ describe("setting a price at the counter", () => {
     expect(line.net).toBe(charge);
   });
 
-  it("prices from the catalogue even so — the discount is all the client sets", async () => {
+  it("prices from the catalogue even so - the discount is all the client sets", async () => {
     const { catalogue, product, input } = await haggled(key(), 0)();
     const charge = catalogue - 2_000;
     input.lines[0]!.discount.value = catalogue - charge;
@@ -895,7 +895,7 @@ describe("the carcass ledger", () => {
   it("blends the new delivery into the cost rather than jumping to it", async () => {
     // A known starting point: 20 kg on hand at 600.00/kg. Other tests sell this
     // catalogue freely, and blending against a case that has gone negative has
-    // no meaning — which is what blendCost is tested for separately.
+    // no meaning - which is what blendCost is tested for separately.
     await db.product.update({
       where: { id: chickenId },
       data: { stockGrams: 20_000, costPerKg: 60_000 },

@@ -40,7 +40,7 @@ describe("PIN hashing", () => {
   it("gives the same PIN the same lookup value, so duplicates can be caught", async () => {
     // This is the whole point of the lookup column: the scrypt hashes differ
     // per person, so only a deterministic keyed digest can spot two people
-    // sharing a PIN — and find whose PIN was just typed at the till.
+    // sharing a PIN - and find whose PIN was just typed at the till.
     const a = await hashPin("270496");
     const b = await hashPin("270496");
     const c = await hashPin("418205");
@@ -127,7 +127,7 @@ describe("weak PINs", () => {
 describe("PIN lockout", () => {
   beforeEach(() => clearFailedPins("TEST"));
 
-  it("locks the pad, not an account — with only a PIN typed there is no account", () => {
+  it("locks the pad, not an account - with only a PIN typed there is no account", () => {
     // The scope defaults to the terminal precisely because a failed sign-in
     // cannot be attributed to anybody: nothing identifying was entered.
     expect(terminalScope()).toMatch(/^terminal:/);

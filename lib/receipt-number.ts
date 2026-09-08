@@ -17,7 +17,7 @@ export function terminalId(): string {
   return process.env.TERMINAL_ID ?? "T1";
 }
 
-/** The slice of the client this needs — satisfied by a Prisma transaction. */
+/** The slice of the client this needs - satisfied by a Prisma transaction. */
 export interface ReceiptCounterStore {
   receiptCounter: {
     upsert(args: {
@@ -43,7 +43,7 @@ export async function nextReceiptNumber(
   });
 
   // upsert returns the row *after* the increment, so the number just taken is
-  // one below what is now stored — except on create, where 1 was reserved.
+  // one below what is now stored - except on create, where 1 was reserved.
   return format(counter.prefix, counter.nextNumber - 1);
 }
 

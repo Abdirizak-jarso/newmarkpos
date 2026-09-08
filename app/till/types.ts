@@ -40,7 +40,7 @@ export interface TillLine {
    * The rate the cashier typed on the entry pad, in cents per kg / piece / pack.
    *
    * The product grid quotes no prices, so in practice every line carries one.
-   * Absent means the line falls back to the catalogue rate — which is what an
+   * Absent means the line falls back to the catalogue rate - which is what an
    * older parked basket or a replayed offline sale from before this change
    * still does.
    */

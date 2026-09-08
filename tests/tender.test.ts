@@ -7,7 +7,7 @@ import { checkoutSchema, tenderSchema } from "@/lib/validation";
  * The shop takes M-Pesa, and the confirmation code arrives on the customer's
  * phone seconds to minutes after they pay. A counter with a queue cannot wait
  * for it, so a tender may be banked with no code and the code recorded against
- * the sale afterwards — see recordMpesaCode, which is where the format and the
+ * the sale afterwards - see recordMpesaCode, which is where the format and the
  * time become compulsory.
  *
  * What must still hold here is that a code which IS supplied is a real one.
@@ -29,7 +29,7 @@ describe("M-Pesa payments", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts one with no code yet — it is recorded after the sale", () => {
+  it("accepts one with no code yet - it is recorded after the sale", () => {
     // The customer has paid; their confirmation message has not arrived. The
     // sale banks and prints, and the payment stays PENDING until the code is
     // entered against it.
@@ -75,7 +75,7 @@ describe("M-Pesa payments", () => {
 });
 
 describe("cash and card", () => {
-  it("need no code or time — there is nothing to reconcile against", () => {
+  it("need no code or time - there is nothing to reconcile against", () => {
     expect(tenderSchema.safeParse({ method: "CASH", amount: 200_000 }).success).toBe(true);
     expect(
       tenderSchema.safeParse({ method: "CARD", amount: 200_000, reference: "AUTH12" }).success,
@@ -108,7 +108,7 @@ describe("a whole sale", () => {
   });
 
   it("is rejected outright when an M-Pesa code is malformed", () => {
-    // The whole sale fails, not just the line — a payment filed against a code
+    // The whole sale fails, not just the line - a payment filed against a code
     // that cannot exist is worse than one filed against no code at all, because
     // it looks reconciled.
     const result = checkoutSchema.safeParse({

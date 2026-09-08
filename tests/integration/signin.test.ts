@@ -75,7 +75,7 @@ describe("identifying a person from their PIN", () => {
     const original = victim.pinLookup;
 
     // Point the cashier's lookup row at a PIN whose scrypt hash it does not
-    // match — the indexed digest finds the row, and verification rejects it.
+    // match - the indexed digest finds the row, and verification rejects it.
     const other = await hashPin("864209");
     await db.user.update({ where: { id: victim.id }, data: { pinLookup: other.pinLookup } });
 
@@ -101,7 +101,7 @@ describe("PINs must belong to one person", () => {
     const admin = await db.user.findUniqueOrThrow({ where: { staffCode: "1000" } });
     const duplicate = await hashPin(CASHIER_PIN);
 
-    // Even if a caller skipped the check, the unique index stops it — the till
+    // Even if a caller skipped the check, the unique index stops it - the till
     // could not say who rang up a sale if two people shared a PIN.
     await expect(
       db.user.update({ where: { id: admin.id }, data: { pinLookup: duplicate.pinLookup } }),
@@ -144,7 +144,7 @@ describe("brute force", () => {
     for (let i = 0; i < MAX_PIN_ATTEMPTS; i += 1) recordFailedPin();
     expect(pinLockoutRemainingMs()).toBeGreaterThan(0);
 
-    // Even the correct PIN is refused while the pad is locked — otherwise the
+    // Even the correct PIN is refused while the pad is locked - otherwise the
     // lockout would only slow down a guesser who never gets lucky.
     await expect(verifyApprover(ADMIN_PIN, "sale.void")).rejects.toThrow(/Too many wrong PINs/);
 

@@ -10,7 +10,7 @@ import type { TillLine, TillProduct } from "@/app/till/types";
  * The basket.
  *
  * Weights show three decimals and prices show two, both in tabular figures, so
- * a cashier scanning the column can see at a glance that 1.235 is not 1.35 —
+ * a cashier scanning the column can see at a glance that 1.235 is not 1.35 -
  * which at KSh 1,800/kg is a KSh 200 mistake.
  */
 export function Cart({
@@ -42,7 +42,7 @@ export function Cart({
         <h2 className="text-sm font-medium text-char-200">
           {lines.length === 0
             ? "This sale"
-            : `This sale — ${lines.length} ${lines.length === 1 ? "line" : "lines"}`}
+            : `This sale - ${lines.length} ${lines.length === 1 ? "line" : "lines"}`}
         </h2>
         {lines.length > 0 && (
           <button
@@ -76,7 +76,7 @@ export function Cart({
                       className="min-w-0 flex-1 text-left"
                     >
                       <p className="truncate text-sm font-medium text-bone">{product.name}</p>
-                      {/* The rate the cashier typed, not the board's — this
+                      {/* The rate the cashier typed, not the board's - this
                           line has to read back as what the customer was told. */}
                       <p className="tabular mt-0.5 text-xs text-char-400">
                         {product.pricingMode === "PER_KG"
@@ -89,7 +89,7 @@ export function Cart({
                         </p>
                       )}
                       {/* Only shown when the typed rate went BELOW the board.
-                          Above it needs no explanation and no colour — the
+                          Above it needs no explanation and no colour - the
                           shop charging its own price is not an exception. */}
                       {priced && priced.priceOverride < 0 && (
                         <p className="mt-0.5 text-[11px] text-brass-300">

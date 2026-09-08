@@ -49,7 +49,7 @@ export async function destroySession(): Promise<void> {
   store.delete(COOKIE_NAME);
 }
 
-/** The signed-in user, or null. Never throws — used by layouts to redirect. */
+/** The signed-in user, or null. Never throws - used by layouts to redirect. */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
@@ -86,7 +86,7 @@ export async function requireUser(): Promise<CurrentUser> {
 
 /**
  * The gate. Call this at the top of every server action and route handler that
- * changes anything — before validating input, before touching the database.
+ * changes anything - before validating input, before touching the database.
  */
 export async function requirePermission(permission: Permission): Promise<CurrentUser> {
   const user = await requireUser();
@@ -100,7 +100,7 @@ export async function requirePermission(permission: Permission): Promise<Current
  * The same gate, for a PAGE rather than a mutation.
  *
  * A cashier who follows a link into the back office should land back at the
- * till, not at a 500. The check is identical — only the failure mode differs,
+ * till, not at a 500. The check is identical - only the failure mode differs,
  * because a person navigating is not the same as a request being rejected.
  */
 export async function requirePagePermission(permission: Permission): Promise<CurrentUser> {
@@ -117,7 +117,7 @@ export async function requirePagePermission(permission: Permission): Promise<Cur
  * their staff code and PIN to authorise the cashier's action.
  *
  * Returns the approver so the caller can record them on the audit event. The
- * approver is deliberately not signed in — the cashier keeps the session.
+ * approver is deliberately not signed in - the cashier keeps the session.
  */
 export async function verifyApprover(pin: string, permission: Permission): Promise<CurrentUser> {
   const { recordFailedPin, clearFailedPins, pinLockoutRemainingMs } = await import("./auth");
@@ -137,7 +137,7 @@ export async function verifyApprover(pin: string, permission: Permission): Promi
   clearFailedPins();
 
   // The PIN is genuine but belongs to someone who cannot authorise this. Say
-  // whose it is — the manager is standing right there, and a vague refusal
+  // whose it is - the manager is standing right there, and a vague refusal
   // just gets the same wrong person to try again.
   if (!can(approver.role, permission)) {
     throw new AuthorisationError(`${approver.name} cannot authorise ${permission}`, permission);

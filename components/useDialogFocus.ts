@@ -12,8 +12,8 @@ import { useEffect, useRef } from "react";
  * types goes into a field they cannot see, the pad stays empty, and the
  * keyboard looks broken.
  *
- * Attach the returned ref to the dialog's panel — the element with the border
- * around it, not the backdrop — and give that element `tabIndex={-1}` so it can
+ * Attach the returned ref to the dialog's panel - the element with the border
+ * around it, not the backdrop - and give that element `tabIndex={-1}` so it can
  * hold focus itself until the cashier tabs or taps somewhere inside it.
  */
 export function useDialogFocus<T extends HTMLElement>() {

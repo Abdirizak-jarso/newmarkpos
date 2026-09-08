@@ -1,5 +1,5 @@
 /**
- * PIN rules — the pure half.
+ * PIN rules - the pure half.
  *
  * Deliberately free of `node:crypto` so the sign-in pad, the manager-approval
  * dialog and the staff form can all import it. `lib/auth.ts` holds everything
@@ -11,7 +11,7 @@
  */
 
 /**
- * Six digits minimum: the PIN is the whole credential — it identifies the
+ * Six digits minimum: the PIN is the whole credential - it identifies the
  * person and authorises them, with nothing else typed. Four digits across a
  * dozen staff is roughly a one-in-800 chance that a guess lands on somebody,
  * which is not a lock. Six makes it one in 80,000.
@@ -25,7 +25,7 @@ export function isValidPinFormat(pin: string): boolean {
 
 /**
  * PINs a thief would try first, and the patterns a bored cashier picks.
- * Refused at the point a PIN is set — "123456" on a manager account defeats
+ * Refused at the point a PIN is set - "123456" on a manager account defeats
  * every approval check in the application.
  */
 const OBVIOUS_PINS = new Set([

@@ -1,13 +1,13 @@
 /**
- * Who gets the keystroke — the pure half.
+ * Who gets the keystroke - the pure half.
  *
  * The till's number pads listen on the window rather than on a focused field,
  * because the cashier is tapping a touch screen and nothing is focused most of
  * the time. That means a pad has to decide, on every key, whether the keystroke
  * was really meant for it or for a text field somebody is typing into.
  *
- * The rule is about LAYERS, not about focus. A field sitting beside a pad — the
- * M-Pesa transaction code next to the amount pad — must keep its own keystrokes.
+ * The rule is about LAYERS, not about focus. A field sitting beside a pad - the
+ * M-Pesa transaction code next to the amount pad - must keep its own keystrokes.
  * A field on the screen behind a pad must not: the cashier cannot see it, so
  * every digit they type would vanish into it and the pad would look broken.
  * That is exactly what used to happen when the product search kept focus and an
@@ -19,8 +19,8 @@ export type KeyTarget = {
   /** Uppercase tag name, as the DOM reports it. */
   tagName: string;
   isContentEditable: boolean;
-  /** True when the element is inside the same layer as the pad — a dialog, or
-   *  the payment panel — rather than on a screen behind it. */
+  /** True when the element is inside the same layer as the pad - a dialog, or
+   *  the payment panel - rather than on a screen behind it. */
   inPadLayer: boolean;
 };
 

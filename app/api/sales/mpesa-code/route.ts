@@ -7,7 +7,7 @@ import { requirePermission, AuthorisationError } from "@/lib/session";
  * The M-Pesa codes still owed, and recording one.
  *
  * Both halves sit behind the same permission, checked here on the server. The
- * till hides the queue from anyone who cannot clear it, but that is tidiness —
+ * till hides the queue from anyone who cannot clear it, but that is tidiness -
  * this is the gate.
  */
 
@@ -40,8 +40,8 @@ export async function POST(request: Request) {
     if (error instanceof AuthorisationError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
-    // These are the cashier-facing messages from the service — a duplicate
-    // code, a sale already reconciled — so they are worth passing through.
+    // These are the cashier-facing messages from the service - a duplicate
+    // code, a sale already reconciled - so they are worth passing through.
     const message = error instanceof Error ? error.message : "Could not record the code";
     return NextResponse.json({ error: message }, { status: 400 });
   }
