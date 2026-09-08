@@ -254,12 +254,22 @@ body {
     padding: 0 !important;
     display: block !important;
   }
+  /*
+   * A fixed 72mm column, centred, whatever paper the dialog is set to.
+   *
+   * `@page size` above asks for a roll, but the print dialog remembers what
+   * the user last chose and will happily override it - and then a receipt set
+   * to fill 100% of the width stretches across a sheet of A5 with its text
+   * marooned in one corner. Pinning the physical width means the output is a
+   * receipt-shaped receipt on A4, A5 or an 80mm roll alike; the paper just
+   * decides how much blank space is around it.
+   */
   .receipt-print-area .receipt-print-sheet {
     max-height: none !important;
     box-shadow: none !important;
-    /* The page is already 80mm wide; fill it rather than sitting in a card. */
-    width: 100% !important;
-    max-width: none !important;
+    width: 72mm !important;
+    max-width: 72mm !important;
+    margin: 0 auto !important;
     border-radius: 0 !important;
   }
   .receipt-print-area .receipt-print-scroll {
@@ -269,14 +279,13 @@ body {
   }
 
   /*
-   * 42 monospaced columns across 74mm of usable paper. Sized in ch so the
-   * receipt's own column arithmetic - the item table, the totals block - comes
-   * out on paper exactly as it does on the roll, rather than being re-wrapped
-   * by whatever the browser felt like doing with 12px.
+   * 42 monospaced columns inside that 72mm. A monospace advance is about 0.6em,
+   * so 42 characters at 2.6mm come to roughly 65mm and the table's own column
+   * arithmetic lands intact rather than being re-wrapped.
    */
   .receipt-print-area .receipt-paper {
-    font-size: 1.72mm;
-    line-height: 1.4;
+    font-size: 2.6mm;
+    line-height: 1.35;
     color: #000 !important;
   }
 }
