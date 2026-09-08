@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "../db";
+import { addDays, shopDateKey, shopHour, startOfDay } from "../shop-clock";
 import { sumCents, type Cents } from "../money";
 import { costOfWeight, margin, type Margin } from "../cost";
 import type { Grams } from "../weight";
@@ -14,6 +15,9 @@ import type { Grams } from "../weight";
  * Voided sales are excluded everywhere. Refunds are included as the negative
  * sales they were recorded as, so takings net out without special-casing.
  */
+
+// Re-exported so a page can take its window and its report from one import.
+export { addDays, endOfDay, shopDateKey, startOfDay } from "../shop-clock";
 
 export interface SalesSummary {
   from: Date;
@@ -277,48 +281,6 @@ export async function yieldReport(from: Date, to: Date): Promise<{
       }))
       .sort((a, b) => b.averageYieldPercent - a.averageYieldPercent),
   };
-}
-
-/*
- * The shop's clock, not the server's.
- *
- * `setHours(0,0,0,0)` gives midnight where the process happens to be running,
- * and this one runs on Vercel in UTC while the counter is in Nairobi. That
- * makes "today" begin at 03:00 EAT: a sale rung at half one in the morning
- * lands on yesterday's takings, and the owner opening the reports before 3am
- * is shown the wrong day. Kenya is UTC+3 and has no daylight saving, so a
- * fixed offset is the entire rule.
- */
-const SHOP_OFFSET_MS = 3 * 60 * 60 * 1000;
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** Midnight at the counter, expressed as the instant it happens. */
-export function startOfDay(at = new Date()): Date {
-  const shopClock = new Date(at.getTime() + SHOP_OFFSET_MS);
-  const midnight = Date.UTC(
-    shopClock.getUTCFullYear(),
-    shopClock.getUTCMonth(),
-    shopClock.getUTCDate(),
-  );
-  return new Date(midnight - SHOP_OFFSET_MS);
-}
-
-export function endOfDay(at = new Date()): Date {
-  return new Date(startOfDay(at).getTime() + DAY_MS - 1);
-}
-
-export function addDays(at: Date, days: number): Date {
-  return new Date(at.getTime() + days * DAY_MS);
-}
-
-/** `2026-09-08` as the counter would date it, for grouping and for URLs. */
-export function shopDateKey(at: Date): string {
-  return new Date(at.getTime() + SHOP_OFFSET_MS).toISOString().slice(0, 10);
-}
-
-/** The hour of the shop's day, 0-23, that this instant fell in. */
-function shopHour(at: Date): number {
-  return new Date(at.getTime() + SHOP_OFFSET_MS).getUTCHours();
 }
 
 /**

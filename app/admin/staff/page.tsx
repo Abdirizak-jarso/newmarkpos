@@ -1,8 +1,15 @@
 import { db } from "@/lib/db";
 import { requirePagePermission, getCurrentUser } from "@/lib/session";
-import { can, permissionsFor, ROLES, ROLE_LABELS, isRole } from "@/lib/permissions";
+import {
+  can,
+  permissionsFor,
+  ROLES,
+  ROLE_LABELS,
+  isRole,
+} from "@/lib/permissions";
 import { Badge, Card, PageHeader, Table } from "@/components/admin/ui";
 import { StaffForm } from "./StaffForm";
+import { SHOP_TIME_ZONE } from "@/lib/shop-clock";
 
 export const dynamic = "force-dynamic";
 
@@ -27,17 +34,30 @@ export default async function StaffPage() {
 
         <Card title="People">
           <Table
-            headers={["Name", "Employee no.", "Role", "Last seen", "Status", ""]}
+            headers={[
+              "Name",
+              "Employee no.",
+              "Role",
+              "Last seen",
+              "Status",
+              "",
+            ]}
             empty="No staff accounts yet."
           >
             {staff.map((member) => (
               <tr key={member.id} className={member.active ? "" : "opacity-50"}>
-                <td className="px-3 py-2 font-medium text-char-900">{member.name}</td>
-                <td className="tabular px-3 py-2 text-char-600">{member.staffCode}</td>
+                <td className="px-3 py-2 font-medium text-char-900">
+                  {member.name}
+                </td>
+                <td className="tabular px-3 py-2 text-char-600">
+                  {member.staffCode}
+                </td>
                 <td className="px-3 py-2 text-char-600">
                   {isRole(member.role) ? ROLE_LABELS[member.role] : member.role}
                   <span className="ml-2 text-xs text-char-400">
-                    {isRole(member.role) ? `${permissionsFor(member.role).length} permissions` : ""}
+                    {isRole(member.role)
+                      ? `${permissionsFor(member.role).length} permissions`
+                      : ""}
                   </span>
                 </td>
                 <td className="px-3 py-2 text-xs text-char-500">
@@ -47,6 +67,7 @@ export default async function StaffPage() {
                         month: "short",
                         hour: "2-digit",
                         minute: "2-digit",
+                        timeZone: SHOP_TIME_ZONE,
                       })
                     : "Never signed in"}
                 </td>
@@ -78,7 +99,9 @@ export default async function StaffPage() {
           <div className="grid gap-4 md:grid-cols-2">
             {ROLES.map((role) => (
               <div key={role}>
-                <h3 className="text-sm font-semibold text-char-900">{ROLE_LABELS[role]}</h3>
+                <h3 className="text-sm font-semibold text-char-900">
+                  {ROLE_LABELS[role]}
+                </h3>
                 <ul className="mt-1.5 space-y-0.5 text-xs text-char-600">
                   {permissionsFor(role).map((permission) => (
                     <li key={permission}>{permission}</li>

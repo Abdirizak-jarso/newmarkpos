@@ -218,21 +218,25 @@ body {
   white-space: pre;
 }
 
-@media print {
-  /*
-   * Print an 80mm till roll, not an A4 page with a receipt marooned on it.
-   *
-   * `auto` height is what makes it a roll: the page grows with the basket
-   * instead of breaking a twenty-line sale across two sheets. 3mm of margin is
-   * about what a thermal head leaves. A shop on 58mm paper changes the paper
-   * width setting for the ESC/POS bytes; this path is the browser's, and 80mm
-   * is the roll it is fed.
-   */
-  @page {
-    size: 80mm auto;
-    margin: 3mm;
-  }
+/*
+ * An 80mm till roll.
+ *
+ * `@page` sits outside the media query on purpose: it only ever applies to
+ * paged output, and at the top level it is the form browsers honour most
+ * reliably. `size: 80mm auto` is the whole trick - a fixed width and a height
+ * that grows with the basket, so a twenty-line sale comes out as one long
+ * receipt instead of being broken across sheets.
+ *
+ * Zero page margin, because the receipt carries its own. The print dialog's
+ * Margins setting overrides anything declared here, so a gutter that lives in
+ * `@page` is a gutter the shop cannot rely on.
+ */
+@page {
+  size: 80mm auto;
+  margin: 0;
+}
 
+@media print {
   .no-print {
     display: none !important;
   }
@@ -254,29 +258,54 @@ body {
     padding: 0 !important;
     display: block !important;
   }
-  .receipt-print-area .receipt-print-sheet {
+
+  /*
+   * 80mm wide, centred, whatever paper the dialog ends up set to.
+   *
+   * The dialog remembers the last paper size a person chose and will override
+   * `@page` with it. Pinning the physical width means an override changes only
+   * how much blank paper surrounds the receipt, never the receipt itself: the
+   * same strip comes out on a roll, on A4 or on A3.
+   */
+  .receipt-print-sheet {
     max-height: none !important;
     box-shadow: none !important;
-    /* The page is already 80mm wide; fill it rather than sitting in a card. */
-    width: 100% !important;
-    max-width: none !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
     border-radius: 0 !important;
-  }
-  .receipt-print-area .receipt-print-scroll {
-    overflow: visible !important;
-    max-height: none !important;
-    padding: 0 !important;
+    background: #fff !important;
   }
 
   /*
-   * 42 monospaced columns across 74mm of usable paper. Sized in ch so the
-   * receipt's own column arithmetic - the item table, the totals block - comes
-   * out on paper exactly as it does on the roll, rather than being re-wrapped
-   * by whatever the browser felt like doing with 12px.
+   * 4mm each side is the unprintable edge of an 80mm roll - the head is 72mm
+   * of dots across a 80mm paper path - so this is where the paper physically
+   * cannot take ink, not a design margin. 8mm at the foot keeps the footer
+   * clear of the tear-off.
    */
-  .receipt-print-area .receipt-paper {
-    font-size: 1.72mm;
-    line-height: 1.4;
+  .receipt-print-scroll {
+    overflow: visible !important;
+    max-height: none !important;
+    padding: 4mm 4mm 8mm !important;
+  }
+
+  /*
+   * 42 monospaced columns across those 72mm.
+   *
+   * A thermal head sets Font A at 1.71mm per character (72mm / 42), and a
+   * monospace advance is about 0.6em, so 2.7mm type is very nearly the real
+   * thing - 68mm of the 72 available, with the slack left over so the item
+   * table cannot wrap on a font whose advance runs a shade wide.
+   */
+  .receipt-paper {
+    font-size: 2.7mm;
+    line-height: 1.35;
     color: #000 !important;
+  }
+
+  /* Never split a receipt across two sheets if the paper is a fixed size. */
+  .receipt-print-sheet,
+  .receipt-paper {
+    break-inside: avoid;
   }
 }

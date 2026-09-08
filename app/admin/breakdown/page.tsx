@@ -4,6 +4,7 @@ import { formatCents } from "@/lib/money";
 import { formatKg } from "@/lib/weight";
 import { Badge, Card, PageHeader, Table } from "@/components/admin/ui";
 import { BreakdownForm } from "./BreakdownForm";
+import { SHOP_TIME_ZONE } from "@/lib/shop-clock";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,10 @@ export default async function BreakdownPage() {
           ) : (
             <ul className="space-y-4">
               {history.map((breakdown) => (
-                <li key={breakdown.id} className="sheet border border-char-200 p-4">
+                <li
+                  key={breakdown.id}
+                  className="sheet border border-char-200 p-4"
+                >
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <div>
                       <p className="font-semibold text-char-900">
@@ -76,6 +80,7 @@ export default async function BreakdownPage() {
                           month: "short",
                           hour: "2-digit",
                           minute: "2-digit",
+                          timeZone: SHOP_TIME_ZONE,
                         })}{" "}
                         · {breakdown.actor.name}
                         {breakdown.supplier ? ` · ${breakdown.supplier}` : ""}
@@ -88,7 +93,11 @@ export default async function BreakdownPage() {
                       <span className="tabular text-char-600">
                         Out {formatKg(breakdown.outputWeightGrams)} kg
                       </span>
-                      <Badge tone={breakdown.lossPercentTenths > 200 ? "bad" : "warn"}>
+                      <Badge
+                        tone={
+                          breakdown.lossPercentTenths > 200 ? "bad" : "warn"
+                        }
+                      >
                         {(breakdown.lossPercentTenths / 10).toFixed(1)}% loss
                       </Badge>
                     </div>
@@ -119,7 +128,9 @@ export default async function BreakdownPage() {
                   </Table>
 
                   {breakdown.notes && (
-                    <p className="mt-2 text-xs text-char-500">{breakdown.notes}</p>
+                    <p className="mt-2 text-xs text-char-500">
+                      {breakdown.notes}
+                    </p>
                   )}
                 </li>
               ))}

@@ -15,7 +15,14 @@ import {
 import { CarcassLedger } from "./CarcassLedger";
 import { formatCents } from "@/lib/money";
 import { formatKg } from "@/lib/weight";
-import { Card, Money, PageHeader, StatCard, Table } from "@/components/admin/ui";
+import {
+  Card,
+  Money,
+  PageHeader,
+  StatCard,
+  Table,
+} from "@/components/admin/ui";
+import { SHOP_TIME_ZONE } from "@/lib/shop-clock";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +34,8 @@ export const dynamic = "force-dynamic";
  * week there is anything to compare.
  */
 function compare(now: number, before: number): string {
-  if (before === 0) return now === 0 ? "nothing either period" : "no figure to compare";
+  if (before === 0)
+    return now === 0 ? "nothing either period" : "no figure to compare";
   const change = Math.round(((now - before) / before) * 100);
   if (change === 0) return "level with the period before";
   return `${change > 0 ? "up" : "down"} ${Math.abs(change)}% on the period before`;
@@ -60,19 +68,36 @@ function resolveWindow(params: { range?: string; day?: string }): {
   if (params.day && /^\d{4}-\d{2}-\d{2}$/.test(params.day)) {
     const at = new Date(`${params.day}T12:00:00Z`);
     if (!Number.isNaN(at.getTime())) {
-      return { from: startOfDay(at), to: endOfDay(at), rangeKey: null, day: params.day };
+      return {
+        from: startOfDay(at),
+        to: endOfDay(at),
+        rangeKey: null,
+        day: params.day,
+      };
     }
   }
 
   const rangeKey: RangeKey =
-    params.range && params.range in RANGES ? (params.range as RangeKey) : "week";
+    params.range && params.range in RANGES
+      ? (params.range as RangeKey)
+      : "week";
 
   if (rangeKey === "yesterday") {
     const at = addDays(new Date(), -1);
-    return { from: startOfDay(at), to: endOfDay(at), rangeKey, day: shopDateKey(at) };
+    return {
+      from: startOfDay(at),
+      to: endOfDay(at),
+      rangeKey,
+      day: shopDateKey(at),
+    };
   }
   if (rangeKey === "today") {
-    return { from: startOfDay(), to: endOfDay(), rangeKey, day: shopDateKey(new Date()) };
+    return {
+      from: startOfDay(),
+      to: endOfDay(),
+      rangeKey,
+      day: shopDateKey(new Date()),
+    };
   }
 
   return {
@@ -125,7 +150,7 @@ export default async function ReportsPage({
                 year: "numeric",
                 timeZone: "Africa/Nairobi",
               })
-            : `${from.toLocaleDateString("en-KE")} to ${to.toLocaleDateString("en-KE")}`
+            : `${from.toLocaleDateString("en-KE", { timeZone: SHOP_TIME_ZONE })} to ${to.toLocaleDateString("en-KE", { timeZone: SHOP_TIME_ZONE })}`
         }
         action={
           <div className="flex items-center gap-2">
@@ -142,7 +167,9 @@ export default async function ReportsPage({
                 </a>
                 <a
                   href={
-                    day >= today ? "/admin/reports?range=today" : `/admin/reports?day=${shopDateKey(addDays(from, 1))}`
+                    day >= today
+                      ? "/admin/reports?range=today"
+                      : `/admin/reports?day=${shopDateKey(addDays(from, 1))}`
                   }
                   aria-label="Next day"
                   aria-disabled={day >= today}
@@ -162,7 +189,9 @@ export default async function ReportsPage({
                   key={key}
                   href={`/admin/reports?range=${key}`}
                   className={`sheet px-3 py-1.5 text-sm font-medium ${
-                    key === rangeKey ? "bg-char-50 text-char-900 shadow-sm" : "text-char-600"
+                    key === rangeKey
+                      ? "bg-char-50 text-char-900 shadow-sm"
+                      : "text-char-600"
                   }`}
                 >
                   {RANGES[key].label}
@@ -235,17 +264,28 @@ export default async function ReportsPage({
           />
           <StatCard
             label={singleDay ? "Takings" : "Best day"}
-            value={summary.bestDay ? formatCents(summary.bestDay.net, { symbol: true }) : "-"}
-            hint={summary.bestDay ? summary.bestDay.label : "No sales in this period"}
+            value={
+              summary.bestDay
+                ? formatCents(summary.bestDay.net, { symbol: true })
+                : "-"
+            }
+            hint={
+              summary.bestDay
+                ? summary.bestDay.label
+                : "No sales in this period"
+            }
           />
           <StatCard
             label="Per kilo"
             value={
               summary.weightGrams === 0
                 ? "-"
-                : formatCents(Math.round(summary.net / (summary.weightGrams / 1000)), {
-                    symbol: true,
-                  })
+                : formatCents(
+                    Math.round(summary.net / (summary.weightGrams / 1000)),
+                    {
+                      symbol: true,
+                    },
+                  )
             }
             hint="Takings divided by meat sold"
           />
@@ -264,11 +304,15 @@ export default async function ReportsPage({
                     href={`/admin/reports?day=${row.date}`}
                     className="flex items-center gap-3 sheet px-2 py-1.5 hover:bg-char-100"
                   >
-                    <span className="w-28 shrink-0 text-sm text-char-700">{row.label}</span>
+                    <span className="w-28 shrink-0 text-sm text-char-700">
+                      {row.label}
+                    </span>
                     <span className="h-4 flex-1 sheet bg-char-100">
                       <span
                         className="block h-full sheet bg-brass-400"
-                        style={{ width: `${Math.round((row.net / peak) * 100)}%` }}
+                        style={{
+                          width: `${Math.round((row.net / peak) * 100)}%`,
+                        }}
                       />
                     </span>
                     <span className="tabular w-16 shrink-0 text-right text-xs text-char-500">
@@ -292,14 +336,19 @@ export default async function ReportsPage({
                 .map((row) => {
                   const peak = Math.max(...summary.byHour.map((h) => h.net), 1);
                   return (
-                    <div key={row.hour} className="flex items-center gap-3 px-2 py-1">
+                    <div
+                      key={row.hour}
+                      className="flex items-center gap-3 px-2 py-1"
+                    >
                       <span className="tabular w-12 shrink-0 text-sm text-char-700">
                         {row.label}
                       </span>
                       <span className="h-3 flex-1 sheet bg-char-100">
                         <span
                           className="block h-full sheet bg-char-400"
-                          style={{ width: `${Math.round((row.net / peak) * 100)}%` }}
+                          style={{
+                            width: `${Math.round((row.net / peak) * 100)}%`,
+                          }}
                         />
                       </span>
                       <span className="tabular w-14 shrink-0 text-right text-xs text-char-500">
@@ -326,8 +375,12 @@ export default async function ReportsPage({
             >
               {summary.byCashier.map((row) => (
                 <tr key={row.userId}>
-                  <td className="px-3 py-2 font-medium text-char-900">{row.name}</td>
-                  <td className="tabular px-3 py-2 text-char-600">{row.saleCount}</td>
+                  <td className="px-3 py-2 font-medium text-char-900">
+                    {row.name}
+                  </td>
+                  <td className="tabular px-3 py-2 text-char-600">
+                    {row.saleCount}
+                  </td>
                   <td className="tabular px-3 py-2 text-char-600">
                     {formatCents(row.averageSale)}
                   </td>
@@ -346,12 +399,14 @@ export default async function ReportsPage({
               <strong className="readout text-2xl font-bold text-brass-700">
                 {formatCents(summary.givenAway, { symbol: true })}
               </strong>{" "}
-              came off board prices in this period - cashiers setting a price, and discounts. That
-              is{" "}
+              came off board prices in this period - cashiers setting a price,
+              and discounts. That is{" "}
               {summary.margin.profit + summary.givenAway === 0
                 ? "0"
                 : Math.round(
-                    (summary.givenAway / (summary.margin.profit + summary.givenAway)) * 100,
+                    (summary.givenAway /
+                      (summary.margin.profit + summary.givenAway)) *
+                      100,
                   )}
               % of what the margin would otherwise have been.
             </p>
@@ -362,11 +417,18 @@ export default async function ReportsPage({
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card title="How people paid">
-            <Table headers={["Method", "Count", "Amount"]} empty="No payments in this period.">
+            <Table
+              headers={["Method", "Count", "Amount"]}
+              empty="No payments in this period."
+            >
               {summary.byMethod.map((row) => (
                 <tr key={row.method}>
-                  <td className="px-3 py-2 font-medium text-char-900">{row.method}</td>
-                  <td className="tabular px-3 py-2 text-char-600">{row.count}</td>
+                  <td className="px-3 py-2 font-medium text-char-900">
+                    {row.method}
+                  </td>
+                  <td className="tabular px-3 py-2 text-char-600">
+                    {row.count}
+                  </td>
                   <td className="px-3 py-2 text-right">
                     <Money cents={row.amount} />
                   </td>
@@ -376,10 +438,15 @@ export default async function ReportsPage({
           </Card>
 
           <Card title="By category">
-            <Table headers={["Category", "Weight", "Takings"]} empty="No sales in this period.">
+            <Table
+              headers={["Category", "Weight", "Takings"]}
+              empty="No sales in this period."
+            >
               {summary.byCategory.map((row) => (
                 <tr key={row.category}>
-                  <td className="px-3 py-2 font-medium text-char-900">{row.category}</td>
+                  <td className="px-3 py-2 font-medium text-char-900">
+                    {row.category}
+                  </td>
                   <td className="tabular px-3 py-2 text-char-600">
                     {formatKg(row.weightGrams)} kg
                   </td>
@@ -393,13 +460,22 @@ export default async function ReportsPage({
         </div>
 
         <Card title="Best sellers">
-          <Table headers={["Product", "SKU", "Lines", "Weight", "Takings"]} empty="No sales in this period.">
+          <Table
+            headers={["Product", "SKU", "Lines", "Weight", "Takings"]}
+            empty="No sales in this period."
+          >
             {summary.topProducts.map((row) => (
               <tr key={row.sku}>
-                <td className="px-3 py-2 font-medium text-char-900">{row.name}</td>
-                <td className="tabular px-3 py-2 text-xs text-char-500">{row.sku}</td>
+                <td className="px-3 py-2 font-medium text-char-900">
+                  {row.name}
+                </td>
+                <td className="tabular px-3 py-2 text-xs text-char-500">
+                  {row.sku}
+                </td>
                 <td className="tabular px-3 py-2 text-char-600">{row.lines}</td>
-                <td className="tabular px-3 py-2 text-char-600">{formatKg(row.weightGrams)} kg</td>
+                <td className="tabular px-3 py-2 text-char-600">
+                  {formatKg(row.weightGrams)} kg
+                </td>
                 <td className="px-3 py-2 text-right">
                   <Money cents={row.net} bold />
                 </td>
@@ -411,28 +487,43 @@ export default async function ReportsPage({
         {mayMargin && (
           <Card title="Margin by product">
             <p className="mb-3 text-xs text-char-500">
-              Cost comes from each product&rsquo;s cost per kg, which intake and carcass breakdown
-              keep current - so a cut that got dearer because the last carcass shrank more than
-              usual shows up here.
+              Cost comes from each product&rsquo;s cost per kg, which intake and
+              carcass breakdown keep current - so a cut that got dearer because
+              the last carcass shrank more than usual shows up here.
             </p>
             <Table
-              headers={["Product", "Weight", "Revenue", "Cost", "Margin", "Margin %"]}
+              headers={[
+                "Product",
+                "Weight",
+                "Revenue",
+                "Cost",
+                "Margin",
+                "Margin %",
+              ]}
               empty="No sales to margin in this period."
             >
               {margins.slice(0, 25).map((row) => (
                 <tr key={row.sku}>
-                  <td className="px-3 py-2 font-medium text-char-900">{row.name}</td>
+                  <td className="px-3 py-2 font-medium text-char-900">
+                    {row.name}
+                  </td>
                   <td className="tabular px-3 py-2 text-char-600">
                     {formatKg(row.weightGrams)} kg
                   </td>
-                  <td className="tabular px-3 py-2 text-char-600">{formatCents(row.revenue)}</td>
-                  <td className="tabular px-3 py-2 text-char-600">{formatCents(row.cost)}</td>
+                  <td className="tabular px-3 py-2 text-char-600">
+                    {formatCents(row.revenue)}
+                  </td>
+                  <td className="tabular px-3 py-2 text-char-600">
+                    {formatCents(row.cost)}
+                  </td>
                   <td className="px-3 py-2">
                     <Money cents={row.margin} />
                   </td>
                   <td
                     className={`tabular px-3 py-2 text-right font-semibold ${
-                      row.marginPercent < 15 ? "text-meat-700" : "text-emerald-700"
+                      row.marginPercent < 15
+                        ? "text-meat-700"
+                        : "text-emerald-700"
                     }`}
                   >
                     {row.marginPercent.toFixed(1)}%
@@ -443,15 +534,21 @@ export default async function ReportsPage({
           </Card>
         )}
 
-        <Card title={`Yield - ${yields.breakdowns} breakdowns, ${yields.averageLossPercent}% average loss`}>
+        <Card
+          title={`Yield - ${yields.breakdowns} breakdowns, ${yields.averageLossPercent}% average loss`}
+        >
           <Table
             headers={["Cut", "Breakdowns", "Total weight", "Average yield"]}
             empty="No carcass breakdowns in this period."
           >
             {yields.rows.map((row) => (
               <tr key={row.sku}>
-                <td className="px-3 py-2 font-medium text-char-900">{row.name}</td>
-                <td className="tabular px-3 py-2 text-char-600">{row.breakdowns}</td>
+                <td className="px-3 py-2 font-medium text-char-900">
+                  {row.name}
+                </td>
+                <td className="tabular px-3 py-2 text-char-600">
+                  {row.breakdowns}
+                </td>
                 <td className="tabular px-3 py-2 text-char-600">
                   {formatKg(row.totalWeightGrams)} kg
                 </td>

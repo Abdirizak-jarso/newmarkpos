@@ -10,6 +10,9 @@
 import { formatCents, type Cents } from "../money";
 import { formatKg } from "../weight";
 import type { CartLine, SaleTotals, Tender } from "../pricing";
+// The counter's clock, not the server's. A receipt printed from a function
+// running in UTC used to be stamped three hours before the sale happened.
+import { formatShopDateTime as formatDateTime } from "../shop-clock";
 
 const ESC = 0x1b;
 const GS = 0x1d;
@@ -296,14 +299,6 @@ function lineQuantityText(line: CartLine): string {
 /** The rate that quantity was charged at - per kg, each, or per pack. */
 function lineUnitText(line: CartLine): string {
   return formatCents(line.unitPrice);
-}
-
-function formatDateTime(at: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return (
-    `${pad(at.getDate())}/${pad(at.getMonth() + 1)}/${at.getFullYear()} ` +
-    `${pad(at.getHours())}:${pad(at.getMinutes())}`
-  );
 }
 
 export function renderReceipt(data: ReceiptData, width: PaperWidth = 80): Uint8Array {
