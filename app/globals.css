@@ -272,19 +272,28 @@ body {
     margin: 0 auto !important;
     border-radius: 0 !important;
   }
+  /*
+   * The gutter has to come from the sheet, not from `@page`.
+   *
+   * With the dialog's Margins on Default the browser uses its own page margin
+   * and ignores the one declared above, so a sheet with its padding stripped
+   * printed with the text hard against the paper's edge. 3mm here is the
+   * receipt's own margin and survives whatever the dialog decides.
+   */
   .receipt-print-area .receipt-print-scroll {
     overflow: visible !important;
     max-height: none !important;
-    padding: 0 !important;
+    padding: 3mm !important;
   }
 
   /*
-   * 42 monospaced columns inside that 72mm. A monospace advance is about 0.6em,
-   * so 42 characters at 2.6mm come to roughly 65mm and the table's own column
-   * arithmetic lands intact rather than being re-wrapped.
+   * 42 monospaced columns inside the 66mm those margins leave. A monospace
+   * advance is about 0.6em, so 42 characters at 2.5mm measure roughly 63mm -
+   * a few millimetres of slack, so the item table cannot wrap on a font whose
+   * advance is a shade wider than the stack's first choice.
    */
   .receipt-print-area .receipt-paper {
-    font-size: 2.6mm;
+    font-size: 2.5mm;
     line-height: 1.35;
     color: #000 !important;
   }
